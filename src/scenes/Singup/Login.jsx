@@ -1,48 +1,53 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../theme"; // Same color tokens as used in Event component
+import { Box, Button, TextField, Typography, useTheme, CircularProgress } from "@mui/material";
+import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
+import { adminLogin } from "../../Api/adminApi";
 
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate()
-  const colors = tokens(theme.palette.mode);  // Get the colors from the theme
+  const colors = tokens(theme.palette.mode);
 
-  const [formData, setFormData] = useState({});
-  const [selectedRole, setSelectedRole] = useState("Admin");  // Default role is 'viewer'
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const requestBody = formData
-    console.log(requestBody);
+    __login__();
   };
 
-  const __login__=async()=>{
-    console.log("logining in");
-    console.log({formData});
-    
-    const req = await fetch(`${process.env.REACT_APP_BACK_URL}/admin/login`,{
-      method:"POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body:JSON.stringify(formData)
-    })
-    const data = await req.json()
-    if(data.message=='success'){
-      document.cookie=`teqtak-admin-token=${data.authtoken}`
-      navigate('/')
+  const __login__ = async () => {
+    if (!formData.email || !formData.password) {
+      setError("Please fill in all fields");
+      return;
     }
-    else{
-      navigate('/login')
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await adminLogin(formData);
+      if (data.message === 'success') {
+        document.cookie = `teqtak-admin-token=${data.authtoken}`;
+        navigate('/');
+      } else {
+        setError(data.message || "Login failed. Please check your credentials.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -112,11 +117,17 @@ const Login = () => {
           />
 
 
+          {error && (
+            <Typography color="error" sx={{ marginBottom: "15px", textAlign: "center" }}>
+              {error}
+            </Typography>
+          )}
+
           <Button
-          onClick={__login__}
-            // type="submit"
+            onClick={__login__}
             variant="contained"
             fullWidth
+            disabled={loading}
             sx={{
               backgroundColor: colors.greenAccent[600], 
               "&:hover": {
@@ -125,7 +136,7 @@ const Login = () => {
               color: colors.grey[100],
             }}
           >
-            Sign Up
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
           </Button>
         </form>
       </Box>

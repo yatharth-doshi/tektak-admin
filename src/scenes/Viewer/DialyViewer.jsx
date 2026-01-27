@@ -5,7 +5,8 @@ import { tokens } from '../../theme';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import DailyEnterpreneurUser from '../UserProfile/EnterpreneurUser/DailyEnterpreneurUser';
-import axios from 'axios';
+import axios from "axios";
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const DialyViewer = () => {
   const theme = useTheme();
@@ -14,11 +15,10 @@ const DialyViewer = () => {
   const [ dailyUser, setDailyUser] = useState([])
   const navigate = useNavigate();
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
   useEffect(()=>{
     const fetchDailyUser = async () =>{
       try{
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/viewers
+        const response = await axios.get(`${API_BASE_URL}/admin/info/viewers
           `);
           const result = response.data.todayUsers;
           setDailyUser(result)

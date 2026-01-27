@@ -3,6 +3,7 @@ import { tokens } from "../../theme";
 import Header from "../../components/Header";
 import { useEffect, useState } from "react";
 import axios from "axios";
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const dummyData = [
   {
@@ -46,7 +47,7 @@ const UserPayment = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/tickets/event`);
+        const response = await axios.get(`${API_BASE_URL}/tickets/event`);
         const transformedData = response.data.map((item) => ({
           eventName: item.data.event.eventTitle,
           creator: item.data.poster.name,

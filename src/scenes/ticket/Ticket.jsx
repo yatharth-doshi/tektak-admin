@@ -1,43 +1,54 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, useTheme, Button, Avatar } from "@mui/material";
+import { Box, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
-import img from '../podcast/image1.jpeg'
-import { fetchTickets } from "../../Api/Ticket/Ticket.Api";
+import { fetchAllTickets, fetchTicketAnalytics } from "../../Api/adminApi";
 
 const Ticket = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [tickets, setTickets] = useState([]); 
   const [count, setCount] = useState(0)
+  const [dailyCount, setDailyCount] = useState(0)
+  const [weeklyCount, setWeeklyCount] = useState(0)
+  const [monthlyCount, setMonthlyCount] = useState(0)
   const navigate = useNavigate();
 
 
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await fetchTickets()
+        const response = await fetchAllTickets();
         const updatedData = response.data.map(ticket => ({
           ...ticket,
         }));
-
-        console.log(response.count)
-        setCount(response.count)
-        console.log(updatedData)
+        setCount(response.count);
         setTickets(updatedData);
       }
       catch (error) {
-        console.error('Fetching data error', error);
+        console.error('Fetching tickets error', error);
       }
     }
     getData();
+  }, [])
+
+  useEffect(() => {
+    const getAnalytics = async () => {
+      try {
+        const analytics = await fetchTicketAnalytics();
+        setDailyCount(analytics?.count?.daily || 0);
+        setWeeklyCount(analytics?.count?.weekly || 0);
+        setMonthlyCount(analytics?.count?.monthly || 0);
+      } catch (error) {
+        console.error('Error fetching ticket analytics:', error);
+      }
+    };
+    getAnalytics();
   }, [])
 
   const columns = [
@@ -109,27 +120,27 @@ const Ticket = () => {
           </Box>
         </Box>
         <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gridAutoRows="140px" gap="20px">
-          {/* <Box gridColumn="span 3" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
+          <Box gridColumn="span 3" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
             <StatBox
               subtitle="Daily Tickets"
-              title="40"
+              title={dailyCount}
               icon={<InsertInvitationIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
             />
           </Box>
           <Box gridColumn="span 3" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
             <StatBox
-              title="90"
+              title={weeklyCount}
               subtitle="Weekly Tickets"
               icon={<InsertInvitationIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
             />
           </Box>
           <Box gridColumn="span 3" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
             <StatBox
-              title="60"
+              title={monthlyCount}
               subtitle="Monthly Tickets"
               icon={<InsertInvitationIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
             />
-          </Box> */}
+          </Box>
           <Box gridColumn="span 3" backgroundColor={colors.primary[400]} display="flex" alignItems="center" justifyContent="center">
             <StatBox
               title={`${count}`}

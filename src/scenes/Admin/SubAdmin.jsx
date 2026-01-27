@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, useTheme, Button, Avatar } from "@mui/material";
+import { Box, useTheme, Button } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
-import { mockDataTeam } from "../../data/mockData";
 import Header from "../../components/Header";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import StatBox from "../../components/StatBox";
-import StarIcon from '@mui/icons-material/Star';
-import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { handleGetSubAdmin } from "../../Api/AllUser/SubAdmin";
-import { ca } from "date-fns/locale";
+import { fetchSubAdmins, deleteSubAdmin } from "../../Api/adminApi";
 import AddSubAdminModal from "./AddSubAdminModal";
 
 
@@ -24,16 +18,14 @@ const SubAdmin = () => {
     const [refresh, setRefresh] = useState(false);
     const [openModal, setOpenModal] = useState(false);
 
-    //   Get All Sub Amdin 
+    //   Get All Sub Admin 
     useEffect(() => {
         const getData = async () => {
             try {
-                const response = await handleGetSubAdmin()
-                // const result = await response.data;
+                const response = await fetchSubAdmins();
                 console.log(response, "Response for subAdmin");
-                setSubAdmin(response)
-                setCount(response.length)
-
+                setSubAdmin(response || []);
+                setCount(response?.length || 0);
             }
             catch (error) {
                 console.error('Fetching data error', error);
@@ -43,14 +35,14 @@ const SubAdmin = () => {
     }, [refresh, openModal])
 
     // Remove Sub Admin 
-    const handleRemoveSubadmin = (id) => {
+    const handleRemoveSubadmin = async (id) => {
         try {
-            const response = axios.delete(`${process.env.REACT_APP_BACK_URL}/admin/subadmin/${id}`)
-            console.log("response for remove Sub Amdin", response)
+            const response = await deleteSubAdmin(id);
+            console.log("response for remove Sub Admin", response);
             setRefresh(!refresh);
         }
         catch (err) {
-            console.log("Error Accourd While remove SubAdmin", err)
+            console.log("Error occurred while removing SubAdmin", err);
         }
     }
 

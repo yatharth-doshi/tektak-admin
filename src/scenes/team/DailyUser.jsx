@@ -5,7 +5,8 @@ import { tokens } from '../../theme';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import DailyEnterpreneurUser from '../UserProfile/EnterpreneurUser/DailyEnterpreneurUser';
-import axios from 'axios';
+import axios from "axios";
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const DailyUser = () => {
   const theme = useTheme();
@@ -18,7 +19,7 @@ const DailyUser = () => {
   useEffect(()=>{
     const fetchDailyUser = async () =>{
       try{
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/users
+        const response = await axios.get(`${API_BASE_URL}/admin/info/users
           `);
           const result = response.data.todayUsers;
           console.log("Heyyyyyyy", result)

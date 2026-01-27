@@ -5,7 +5,8 @@ import { tokens } from '../../theme';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import DailyEnterpreneurUser from '../UserProfile/EnterpreneurUser/DailyEnterpreneurUser';
-import axios from 'axios';
+import axios from "axios";
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const MonthlyEnterpreneur = () => {
   const theme = useTheme();
@@ -17,7 +18,7 @@ const MonthlyEnterpreneur = () => {
   useEffect(() => {
     const fetchDailyUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/entrepreneur
+        const response = await axios.get(`${API_BASE_URL}/admin/info/entrepreneur
           `);
         const result = response.data.monthUsers;
         setDailyUser(result)

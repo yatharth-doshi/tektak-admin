@@ -1,76 +1,137 @@
 import React, { useEffect, useState } from 'react';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, Divider, Typography, Avatar, IconButton } from '@mui/material';
-
+import { Box, Button, Typography, Avatar, useTheme } from '@mui/material';
+import { tokens } from '../theme';
+import { fetchBlockedUsers, unblockUser } from '../Api/adminApi';
+import Header from './Header';
+import { DataGrid } from '@mui/x-data-grid';
 
 
 function BlockAccount() {
   const [blockedUsers, setblockedUsers] = useState([])
   const [render, setRender] = useState(false)
+  const [count, setCount] = useState(0)
   let navigate = useNavigate();
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
 
   useEffect(() => {
-    blockedUser()
-
+    getBlockedUsers()
   }, [render])
-  const blockedUser = async () => {
-    const req = await fetch(`${process.env.REACT_APP_BACK_URL}/admin/blocked`, {
-      method: 'GET',
-      credentials: 'include'
-    })
-    const d = await req.json()
-    setblockedUsers(d.data)
-    console.log({ d })
+
+  const getBlockedUsers = async () => {
+    try {
+      const response = await fetchBlockedUsers();
+      setblockedUsers(response.data || []);
+      setCount(response.count || response.data?.length || 0);
+      console.log("Blocked users:", response);
+    } catch (error) {
+      console.error("Error fetching blocked users:", error);
+    }
   }
   const activateUser = async (id) => {
-    const data = { "isBlocked": "false" }
-    console.log('avtivating ', id)
-    const req = await fetch(`${process.env.REACT_APP_BACK_URL}/users/update/${id}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-    const d = await req.json()
-    setRender((prev) => !prev)
-    console.log({ d })
+    console.log('activating ', id)
+    try {
+      const response = await unblockUser(id);
+      setRender((prev) => !prev)
+      console.log({ response })
+    } catch (error) {
+      console.error("Error activating user:", error);
+    }
   }
-  console.log(blockedUsers.length)
+
+  const handleViewProfile = (userPK) => {
+    navigate('/userProfile', { state: { userPK } });
+  }
+
+  const columns = [
+    {
+      field: "profile",
+      headerName: "Profile",
+      flex: 0.5,
+      renderCell: (params) => (
+        <Avatar alt={params.row.name} src={params.row.picUrl} />
+      ),
+    },
+    {
+      field: "name",
+      headerName: "Name",
+      flex: 1,
+      valueGetter: (params) => params.row.name,
+      cellClassName: "name-column--cell",
+    },
+    {
+      field: "email",
+      headerName: "Email",
+      flex: 1.5,
+      valueGetter: (params) => params.row.email,
+    },
+    {
+      field: "role",
+      headerName: "Role",
+      flex: 0.8,
+      valueGetter: (params) => params.row.role,
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1.5,
+      renderCell: (params) => (
+        <Box display="flex" gap="10px">
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleViewProfile(params.row.Users_PK)}
+          >
+            Profile
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => activateUser(params.row.Users_PK)}
+          >
+            Unblock
+          </Button>
+        </Box>
+      ),
+    },
+  ];
+
   return (
-    <Box sx={{ height: "87vh", overflowY: "auto" }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2 }}>
-        {/* <IconButton onClick={() => navigate('/settings')}>
-          <ChevronLeftIcon />
-        </IconButton> */}
-        <Typography variant="h6">Blocked user list</Typography>
-      </Box>
-      <Box sx={{ width: '90%', padding: "0px 10px", m: 'auto' }}>
-        {blockedUsers.length == 0 ? <Typography variant="h2" color="secondary">No User in Blocked list</Typography>
-          : blockedUsers.map((user, i) => (
-            <Box key={i} sx={{ pb: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 2 }}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Avatar src={user.picUrl} alt={user.name} sx={{ width: 50, height: 50 }} />
-                  <Box>
-                    <Typography variant="body1" fontWeight="medium">
-                      {user.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {user.email}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Button
-                  onClick={() => activateUser(user.Users_PK)}
-                  variant="contained" color="secondary" sx={{ height: '7vh', width: { xs: '50%', md: '20%' } }}>
-                  Unblock
-                </Button>
-              </Box>
-              <Divider sx={{ width: '90%', mx: 'auto' }} />
-            </Box>
-          ))}
+    <Box sx={{ height: "87vh", overflowY: "auto", padding: "20px" }}>
+      <Header title="BLOCKED USERS" subtitle={`Managing ${count} Blocked Users`} />
+      
+      <Box
+        m="40px 0 0 0"
+        height="75vh"
+        sx={{
+          "& .MuiDataGrid-root": { border: "none" },
+          "& .MuiDataGrid-cell": { borderBottom: "none" },
+          "& .name-column--cell": { color: colors.greenAccent[300] },
+          "& .MuiDataGrid-columnHeaders": { backgroundColor: colors.blueAccent[700], borderBottom: "none" },
+          "& .MuiDataGrid-virtualScroller": { backgroundColor: colors.primary[400] },
+          "& .MuiDataGrid-footerContainer": { borderTop: "none", backgroundColor: colors.blueAccent[700] },
+        }}
+      >
+        {blockedUsers.length === 0 ? (
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            height="100%" 
+            backgroundColor={colors.primary[400]}
+          >
+            <Typography variant="h4" color={colors.greenAccent[500]}>
+              No Blocked Users Found
+            </Typography>
+          </Box>
+        ) : (
+          <DataGrid
+            rows={blockedUsers}
+            columns={columns}
+            getRowId={(row) => row.Users_PK || row._id}
+          />
+        )}
       </Box>
     </Box>
   );

@@ -2,90 +2,96 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import { Card, CardMedia, CardContent, Typography, Button, Grid } from '@mui/material';
-import { Box, useTheme } from "@mui/material";
+import { Card, CardMedia, Typography, Grid, Box, useTheme, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
-import { styled } from '@mui/material/styles';
 import StatBox from "../../components/StatBox";
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import EventNoteIcon from '@mui/icons-material/EventNote';
 import DateRangeIcon from '@mui/icons-material/DateRange';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import axios from "axios";
-import { fetchAllEventsCount } from "../../Api/Events/AllEventsCount";
+import DeleteIcon from '@mui/icons-material/Delete';
+import { fetchAllEvents, toggleEventActivation, deleteEvent, fetchEventAnalytics } from "../../Api/adminApi";
 
 const Events = () => {
-  // const [currentEvents, setCurrentEvents] = useState([]);
   const [count, setCount] = useState(0);
   const [events, setEvents] = useState([]);
-  const [dailyEventsCount, setDailyEventsCount] = useState(0)
-  const [monthlyEventsCount, setMonthlyEventsCount] = useState(0)
-  const [weeklyEventsCount, setWeeklyEventsCount] = useState(0)
+  const [refresh, setRefresh] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [dailyEventsCount, setDailyEventsCount] = useState(0);
+  const [monthlyEventsCount, setMonthlyEventsCount] = useState(0);
+  const [weeklyEventsCount, setWeeklyEventsCount] = useState(0);
 
+  // Fetch all events
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/events`);
-        const result = await response.data;
-        console.log("Fetched data:", result);
-        console.log("count is");
-        console.log(result.count);
-
-        // Update events data
-        const updatedData = result.data.map(user => ({
-          ...user,
+        const result = await fetchAllEvents();
+        console.log("Fetched events:", result);
+        const updatedData = result.data.map(event => ({
+          ...event,
           active: true
         }));
-
         setCount(result.count);
-        console.log(updatedData);
         setEvents(updatedData);
       } catch (error) {
-        console.error('Fetching data error', error);
+        console.error('Fetching events error', error);
       }
     };
     getData();
-  }, []);
+  }, [refresh]);
 
+  // Fetch event analytics
   useEffect(() => {
-    const getUserCount = async () => {
+    const getEventAnalytics = async () => {
       try {
-        const users = await fetchAllEventsCount(); 
-        setDailyEventsCount(users.count.daily);
-        setWeeklyEventsCount(users.count.weekly)
-        setMonthlyEventsCount(users.count.monthly)
-
+        const analytics = await fetchEventAnalytics(); 
+        setDailyEventsCount(analytics?.count?.daily || 0);
+        setWeeklyEventsCount(analytics?.count?.weekly || 0);
+        setMonthlyEventsCount(analytics?.count?.monthly || 0);
       } catch (error) {
-        console.log(error);
+        console.log('Error fetching event analytics:', error);
       }
     };
-    getUserCount();
+    getEventAnalytics();
   }, []);
 
-
+  // Toggle event activation
   const handleToggleActivation = async (eventId, currentStatus) => {
-    console.log("this is event id ", eventId)
     try {
-      const updatedStatus = currentStatus === "true" ? "false" : "true"; // Toggle the status
-      const response = await axios.put(`${process.env.REACT_APP_BACK_URL}/events/${eventId}`, {
-        isActivated: updatedStatus,
-      });
-
-      const updatedEvent = response.data;
-      console.log("hello asdfasd", updatedEvent)
-      // Update the state to reflect the changes in the UI
+      const updatedStatus = currentStatus === "true" ? "false" : "true";
+      await toggleEventActivation(eventId, updatedStatus);
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
-          event._id === updatedEvent._id ? { ...event, isActivated: updatedStatus } : event
+          event._id === eventId ? { ...event, isActivated: updatedStatus } : event
         )
       );
-
-      alert(`Event ${updatedStatus === "true" ? "activated" : "deactivated"} successfully.`);
     } catch (error) {
       console.error("Error toggling activation status:", error);
-      alert("Error updating event status.");
     }
+  };
+
+  // Delete event
+  const handleDeleteClick = (eventId) => {
+    setSelectedEventId(eventId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteEvent(selectedEventId);
+      setRefresh(!refresh);
+      setDeleteDialogOpen(false);
+      setSelectedEventId(null);
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setSelectedEventId(null);
   };
 
   const navigate = useNavigate();
@@ -215,10 +221,16 @@ const Events = () => {
                       variant="contained"
                       color="secondary"
                       sx={{mx:"5px"}}
-                      // onClick={() => handleUser(event._id, event.isActivated)}
                     >
                       View Profile
                     </Button>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteClick(event._id)}
+                      sx={{ bgcolor: "rgba(255,0,0,0.2)", ml: 1 }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
                   </div>
                 </div>
               </Grid>
@@ -229,6 +241,17 @@ const Events = () => {
         </Grid>
       </div>
 
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this event? This action cannot be undone.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">Cancel</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">Delete</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

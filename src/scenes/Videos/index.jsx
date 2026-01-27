@@ -1,70 +1,83 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, useTheme, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { tokens } from "../../theme";
 import Header from "../../components/Header";
-import { useTheme } from "@mui/material";
 import StatBox from "../../components/StatBox";
 import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
-import BackspaceIcon from "@mui/icons-material/Backspace";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { fetchAllVideoCount } from "../../Api/Video/AllVideoCount";
+import { fetchAllVideos, deleteVideo, fetchVideoAnalytics } from "../../Api/adminApi";
 import { useInView } from "react-intersection-observer";
 
 const Videos = () => {
   const navigate = useNavigate();
   const [count, setCount] = useState(0);
   const [videos, setVideos] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [dailyVideosCount, setDailyVideosCount] = useState(0);
   const [monthlyVideosCount, setMonthlyVideosCount] = useState(0);
   const [weeklyVideosCount, setWeeklyVideosCount] = useState(0);
 
+  // Fetch all videos
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/upload/videos/all`);
-        const result = response.data;
-        const updatedData = result.data.map((user) => ({
-          ...user,
+        const result = await fetchAllVideos();
+        const updatedData = result.data.map((video) => ({
+          ...video,
           active: true,
         }));
-
         setCount(result.count);
         setVideos(updatedData);
       } catch (error) {
-        console.error("Fetching data error", error);
+        console.error("Fetching videos error", error);
       }
     };
     getData();
-  }, []);
+  }, [refresh]);
 
-  // Get Count By Date
+  // Fetch video analytics
   useEffect(() => {
-    const getVideoCount = async () => {
+    const getVideoAnalytics = async () => {
       try {
-        const users = await fetchAllVideoCount();
-        setDailyVideosCount(users.count.daily);
-        setWeeklyVideosCount(users.count.weekly);
-        setMonthlyVideosCount(users.count.monthly);
+        const analytics = await fetchVideoAnalytics();
+        setDailyVideosCount(analytics?.count?.daily || 0);
+        setWeeklyVideosCount(analytics?.count?.weekly || 0);
+        setMonthlyVideosCount(analytics?.count?.monthly || 0);
       } catch (error) {
-        console.log(error);
+        console.log('Error fetching video analytics:', error);
       }
     };
-    getVideoCount();
+    getVideoAnalytics();
   }, []);
 
-  const handleDeleteVideo = async (vidId) => {
+  // Delete video handlers
+  const handleDeleteClick = (videoId) => {
+    setSelectedVideoId(videoId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      await axios.post(`${process.env.REACT_APP_BACK_URL}/upload/delete/${vidId}`);
-      setVideos((prevVideos) => prevVideos.filter((video) => video._id !== vidId));
+      await deleteVideo(selectedVideoId);
+      setRefresh(!refresh);
+      setDeleteDialogOpen(false);
+      setSelectedVideoId(null);
     } catch (error) {
       console.error("Error deleting video:", error);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setSelectedVideoId(null);
   };
 
   const handleDailyVideos = () => navigate("/dailyVideos");
@@ -149,17 +162,29 @@ const Videos = () => {
                 video={video}
                 colors={colors}
                 handleUser={handleUser}
-                handleDeleteVideo={handleDeleteVideo}
+                handleDeleteClick={handleDeleteClick}
               />
             );
           })}
         </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            Are you sure you want to delete this video? This action cannot be undone.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} color="primary">Cancel</Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">Delete</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
 };
 
-const VideoCard = ({ video, colors, handleUser, handleDeleteVideo }) => {
+const VideoCard = ({ video, colors, handleUser, handleDeleteClick }) => {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 });
 
   return (
@@ -171,6 +196,7 @@ const VideoCard = ({ video, colors, handleUser, handleDeleteVideo }) => {
       alignItems="center"
       justifyContent="center"
       padding="10px"
+      position="relative"
     >
       {inView ? (
         <video
@@ -183,12 +209,14 @@ const VideoCard = ({ video, colors, handleUser, handleDeleteVideo }) => {
       ) : (
         <Box width="100%" height="200px" backgroundColor={colors.grey[500]} />
       )}
-      <Button variant="contained" color="secondary" sx={{mt:"5px"}} onClick={() => handleUser(video.userId)}>
-        View Profile
-      </Button>
-      <Typography px={1} borderRadius={1} position="relative" zIndex="1" top={-235} left={140}>
-        <BackspaceIcon onClick={() => handleDeleteVideo(video._id)} />
-      </Typography>
+      <Box display="flex" gap={1} mt={1} width="100%">
+        <Button variant="contained" color="secondary" fullWidth onClick={() => handleUser(video.userId)}>
+          View Profile
+        </Button>
+        <Button variant="contained" color="error" onClick={() => handleDeleteClick(video._id)}>
+          <DeleteIcon />
+        </Button>
+      </Box>
     </Box>
   );
 };

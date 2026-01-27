@@ -12,9 +12,8 @@ import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { fetchAllViewersCount } from "../../Api/Viewers/AllviewerCount.api";
-import { handleSubAdmin } from "../../Api/AllUser/SubAdmin";
+import { fetchViewers, updateUser, fetchUserById } from "../../Api/adminApi";
 
 const Viewer = ({ onBack }) => {
   const theme = useTheme();
@@ -83,18 +82,20 @@ const Viewer = ({ onBack }) => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/users`)
-        const result = await response.data;
-
-
+        const result = await fetchViewers();
         console.log("Fetched data:", result);
-        const updatedData = result.data.data.map(user => ({
+        
+        // Handle different response structures
+        const viewerData = result?.data?.data || result?.data || result || [];
+        const viewerCount = result?.data?.count || result?.count || viewerData.length || 0;
+        
+        const updatedData = Array.isArray(viewerData) ? viewerData.map(user => ({
           ...user,
           active: true
-        }));
+        })) : [];
 
-        setCount(result.data.count)
-        console.log("updatedData", updatedData)
+        setCount(viewerCount);
+        console.log("updatedData", updatedData);
         setViewer(updatedData);
       }
       catch (error) {
@@ -115,15 +116,7 @@ const Viewer = ({ onBack }) => {
     console.log('Toggling block status for user ID:', id, 'New Status:', updatedStatus);
 
     try {
-      const req = await fetch(`http://localhost:5000/users/update/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const response = await req.json();
+      const response = await updateUser(id, data);
       console.log('Response:', response);
       setRefresh(!refresh)
 
@@ -141,9 +134,10 @@ const Viewer = ({ onBack }) => {
     const getUserCount = async () => {
       try {
         const users = await fetchAllViewersCount();
-        setDailyViewerCount(users.count.daily);
-        setWeeklyViewerCount(users.count.weekly)
-        setMonthlyViewerCount(users.count.monthly)
+        console.log("Viewer Analytics:", users);
+        setDailyViewerCount(users?.count?.daily || 0);
+        setWeeklyViewerCount(users?.count?.weekly || 0);
+        setMonthlyViewerCount(users?.count?.monthly || 0);
       } catch (error) {
         console.log(error);
       }
@@ -228,13 +222,11 @@ const Viewer = ({ onBack }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
-          );
-          const jobsData = response.data.data.jobs; 
-          const podcastData = response.data.data.podcast; 
-          const eventData = response.data.data.events; 
-          const videoData = response.data.data.videos; 
+          const response = await fetchUserById(selectedUser.Users_PK);
+          const jobsData = response.data.jobs; 
+          const podcastData = response.data.podcast; 
+          const eventData = response.data.events; 
+          const videoData = response.data.videos; 
           setUserDataJobsCount(jobsData); 
           setUserDataEventCount(eventData); 
           setUserDataPodcastCount(podcastData); 

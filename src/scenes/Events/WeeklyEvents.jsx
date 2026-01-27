@@ -16,6 +16,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import axios from "axios";
 import { fetchAllEventsCount } from "../../Api/Events/AllEventsCount";
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const WeeklyEvents = () => {
     const [currentEvents, setCurrentEvents] = useState([]);
     const [count, setCount] = useState(0);
@@ -24,7 +26,7 @@ const WeeklyEvents = () => {
     // useEffect(() => {
     //     const getData = async () => {
     //         try {
-    //             const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/events`);
+    //             const response = await axios.get(`${API_BASE_URL}/events`);
     //             const result = await response.data;
     //             console.log("Fetched data:", result);
     //             console.log("count is");
@@ -64,7 +66,7 @@ const WeeklyEvents = () => {
         console.log("this is event id ", eventId)
         try {
             const updatedStatus = currentStatus === "true" ? "false" : "true"; // Toggle the status
-            const response = await axios.put(`${process.env.REACT_APP_BACK_URL}/events/${eventId}`, {
+            const response = await axios.put(`${API_BASE_URL}/events/${eventId}`, {
                 isActivated: updatedStatus,
             });
 

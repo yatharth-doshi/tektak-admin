@@ -11,6 +11,7 @@ import UserJobs from './UserJobs';
 import { tokens } from '../theme';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const dummyUserData = {
   name: "John Doe",
@@ -59,7 +60,7 @@ const NotificationUser = ({ user = dummyUserData, onBack }) => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/users/${createdBy}`)
+        const response = await axios.get(`${API_BASE_URL}/users/${createdBy}`)
         const result = response.data
         const count = response.data.data
         setJobCount(count.jobs.length)

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme, Button, Card, CardContent, CardHeader, Container, Grid, Typography, TextField } from '@mui/material';
+import { useTheme, Button, Card, CardContent, CardHeader, Container, Grid, Typography, TextField, CircularProgress } from '@mui/material';
 import { tokens } from "../../theme";
 import { styled } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
-import { fetchAdminData } from '../../Api/Admin/Admin';
-import axios from 'axios';
+import { fetchAdminProfile, updateAdminProfile } from '../../Api/adminApi';
 
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -15,13 +14,22 @@ const StyledCard = styled(Card)(({ theme }) => ({
 const AdminProfile = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [admin, setAdmin] = useState([])
+  const [admin, setAdmin] = useState({})
   const [refresh, setRefresh] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     const getResponse = async () => {
-      const response = await fetchAdminData()
-      setAdmin(response)
+      setLoading(true);
+      try {
+        const response = await fetchAdminProfile();
+        setAdmin(response);
+      } catch (error) {
+        console.error("Error fetching admin profile:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     getResponse()
   }, [refresh])
@@ -51,18 +59,16 @@ const AdminProfile = () => {
       alert("Please fill in all the fields.");
       return;
     }
+    setUpdating(true);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACK_URL}/admin/profile/update`,
-        formData
-      );
-      if (response.status === 200) {
-        alert("Profile updated successfully");
-        setRefresh(!refresh)
-      }
+      const response = await updateAdminProfile(formData);
+      alert("Profile updated successfully");
+      setRefresh(!refresh);
     } catch (error) {
       console.error("Error updating profile:", error);
       alert("Failed to update profile");
+    } finally {
+      setUpdating(false);
     }
   };
 

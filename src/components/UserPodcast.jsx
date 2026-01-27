@@ -13,12 +13,9 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { tokens } from "../theme";
-import img1 from '../scenes/podcast/image1.jpeg'
-import img2 from '../scenes/podcast/img2.jpeg'
-import img3 from '../scenes/podcast/img3.jpeg'
-import img4 from '../scenes/podcast/img4.jpeg'
-import img5 from '../scenes/podcast/img5.jpeg'
 import axios from "axios";
+
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 
 const UserPodcast = ({ open, handleClose, data }) => {
@@ -29,7 +26,7 @@ const UserPodcast = ({ open, handleClose, data }) => {
     // useEffect(() => {
     //     const getData = async () => {
     //         try {
-    //             const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/users/${userId}`);
+    //             const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
 
     //             const podcast = await response.data.data.podcast;
     //             const podcastLength = await response.data.data.podcast.length;

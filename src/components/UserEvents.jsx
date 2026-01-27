@@ -3,9 +3,11 @@ import React from "react";
 import { Modal, Grid, Typography, CardMedia, Box, IconButton } from '@mui/material';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import CloseIcon from '@mui/icons-material/Close';
-import axios from "axios";
+import axios from 'axios';
 import { useTheme } from "@emotion/react";
 import { tokens } from "../theme";
+
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const UserEvents = ({ open, handleClose, data }) => {
 
@@ -18,7 +20,7 @@ const UserEvents = ({ open, handleClose, data }) => {
   // useEffect(() => {
   //   const getData = async () => {
   //     try {
-  //       const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/users/${userId}`);
+  //       const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
 
   //       const events = await response.data.data.events;
   //       const eventsLength = await response.data.data.events.length;

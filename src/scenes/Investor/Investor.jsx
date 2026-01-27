@@ -3,25 +3,18 @@ import { Box, Typography, useTheme, Button, Avatar } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import { mockDataTeam } from "../../data/mockData";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import Header from "../../components/Header";
 import TrafficIcon from "@mui/icons-material/Traffic";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import StatBox from "../../components/StatBox";
 import StarIcon from '@mui/icons-material/Star';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import PreviewIcon from '@mui/icons-material/Preview';
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
 import { fetchAllInvestorsCount } from "../../Api/Investors/allInvestorCount.api";
-import { handleSubAdmin } from "../../Api/AllUser/SubAdmin";
+import { fetchInvestors, updateUser, fetchUserById } from "../../Api/adminApi";
 
 
 const Investor = ({ onBack }) => {
@@ -57,9 +50,10 @@ const Investor = ({ onBack }) => {
     const getUserCount = async () => {
       try {
         const users = await fetchAllInvestorsCount();
-        setDailyInvestorCount(users.count.daily);
-        setWeeklyInvestorCount(users.count.weekly)
-        setMonthlyInvestorCount(users.count.monthly)
+        console.log("Analytics Response:", users);
+        setDailyInvestorCount(users?.count?.daily || 0);
+        setWeeklyInvestorCount(users?.count?.weekly || 0);
+        setMonthlyInvestorCount(users?.count?.monthly || 0);
       } catch (error) {
         console.log(error);
       }
@@ -70,15 +64,20 @@ const Investor = ({ onBack }) => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/investors`)
-        const result = await response.data;
-        const updatedData = result.data.data.map(user => ({
+        const result = await fetchInvestors();
+        console.log("Raw API Response:", result);
+        
+        // Handle different response structures
+        const investorData = result?.data?.data || result?.data || result || [];
+        const investorCount = result?.data?.count || result?.count || investorData.length || 0;
+        
+        const updatedData = Array.isArray(investorData) ? investorData.map(user => ({
           ...user,
           active: true
-        }));
+        })) : [];
 
-        setCount(result.data.count)
-        console.log("Hey Investors", updatedData)
+        setCount(investorCount);
+        console.log("Hey Investors", updatedData);
         setInvestors(updatedData);
       }
       catch (error) {
@@ -99,15 +98,7 @@ const Investor = ({ onBack }) => {
     console.log('Toggling block status for user ID:', id, 'New Status:', updatedStatus);
 
     try {
-      const req = await fetch(`${process.env.REACT_APP_BACK_URL}/users/update/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const response = await req.json();
+      const response = await updateUser(id, data);
       console.log('Response:', response);
       setRefresh(!refresh)
 
@@ -215,13 +206,11 @@ const Investor = ({ onBack }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
-          );
-          const jobsData = response.data.data.jobs; 
-          const podcastData = response.data.data.podcast; 
-          const eventData = response.data.data.events; 
-          const videoData = response.data.data.videos; 
+          const response = await fetchUserById(selectedUser.Users_PK);
+          const jobsData = response.data.jobs; 
+          const podcastData = response.data.podcast; 
+          const eventData = response.data.events; 
+          const videoData = response.data.videos; 
           setUserDataJobsCount(jobsData); 
           setUserDataEventCount(eventData); 
           setUserDataPodcastCount(podcastData); 

@@ -4,18 +4,16 @@ import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import StarIcon from '@mui/icons-material/Star';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
 import { fetchAllEnterpreneurCount } from "../../Api/Enterpreneurs/AllEnterpreneurCount.api";
-import { handleSubAdmin } from "../../Api/AllUser/SubAdmin";
+import { fetchEntrepreneurs, updateUser, fetchUserById } from "../../Api/adminApi";
 
 const Enterpreneur = ({ onBack }) => {
   const theme = useTheme();
@@ -30,28 +28,23 @@ const Enterpreneur = ({ onBack }) => {
   const navigate = useNavigate();
 
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/entrepreneur`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      throw error;
-    }
-  };
-
   useEffect(() => {
     const getData = async () => {
       try {
-        const result = await fetchData();
+        const result = await fetchEntrepreneurs();
         console.log("Fetched data:", result);
-
-        const updatedData = result.data.data.map(user => ({
+        
+        // Handle different response structures
+        const entrepreneurData = result?.data?.data || result?.data || result || [];
+        const entrepreneurCount = result?.data?.count || result?.count || entrepreneurData.length || 0;
+        
+        const updatedData = Array.isArray(entrepreneurData) ? entrepreneurData.map(user => ({
           ...user,
           active: true
-        }));
-        setCount(result.data.count)
-        console.log(updatedData)
+        })) : [];
+        
+        setCount(entrepreneurCount);
+        console.log(updatedData);
         setEntrepreneur(updatedData);
       } catch (error) {
         console.error('Fetching data error', error);
@@ -92,15 +85,7 @@ const Enterpreneur = ({ onBack }) => {
     console.log('Toggling block status for user ID:', id, 'New Status:', updatedStatus);
 
     try {
-      const req = await fetch(`http://localhost:5000/users/update/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const response = await req.json();
+      const response = await updateUser(id, data);
       console.log('Response:', response);
       setRefresh(!refresh)
 
@@ -113,9 +98,10 @@ const Enterpreneur = ({ onBack }) => {
     const getUserCount = async () => {
       try {
         const users = await fetchAllEnterpreneurCount();
-        setDailyEnterpreneurCount(users.count.daily);
-        setWeeklyEnterpreneurCount(users.count.weekly)
-        setMonthlyEnterpreneurCount(users.count.monthly)
+        console.log("Entrepreneur Analytics:", users);
+        setDailyEnterpreneurCount(users?.count?.daily || 0);
+        setWeeklyEnterpreneurCount(users?.count?.weekly || 0);
+        setMonthlyEnterpreneurCount(users?.count?.monthly || 0);
       } catch (error) {
         console.log(error);
       }
@@ -227,13 +213,11 @@ const Enterpreneur = ({ onBack }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
-          );
-          const jobsData = response.data.data.jobs; 
-          const podcastData = response.data.data.podcast; 
-          const eventData = response.data.data.events; 
-          const videoData = response.data.data.videos; 
+          const response = await fetchUserById(selectedUser.Users_PK);
+          const jobsData = response.data.jobs; 
+          const podcastData = response.data.podcast; 
+          const eventData = response.data.events; 
+          const videoData = response.data.videos; 
           setUserDataJobsCount(jobsData); 
           setUserDataEventCount(eventData); 
           setUserDataPodcastCount(podcastData); 

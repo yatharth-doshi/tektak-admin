@@ -7,6 +7,8 @@ import axios from "axios";
 import Header from "../../components/Header";
 import StatBox from "../../components/StatBox";
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const AllTask = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -18,7 +20,7 @@ const AllTask = () => {
     useEffect(() => {
         const getData = async () => {
             try {
-                const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/qna/ques`);
+                const response = await axios.get(`${API_BASE_URL}/qna/ques`);
                 const result = response.data;
                 setQuestion(result);
                 setCount(result.length)
@@ -101,3 +103,4 @@ const AllTask = () => {
 };
 
 export default AllTask;
+

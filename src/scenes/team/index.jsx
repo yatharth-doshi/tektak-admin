@@ -5,17 +5,15 @@ import StarIcon from '@mui/icons-material/Star';
 import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
-// import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
 import img from '../podcast/image1.jpeg'
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
-import { fetchAllUserCount } from "../../Api/AllUser/AllUserCount.api";
+import { fetchAllUsers, updateUser, fetchUserAnalytics, fetchUserById } from "../../Api/adminApi";
 
 const Team = ({ onBack, userId }) => {
   const theme = useTheme();
@@ -31,36 +29,45 @@ const Team = ({ onBack, userId }) => {
   const navigate = useNavigate();
 
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/allusers
-`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      throw error;
-    }
-  };
-
+  // Fetch all users
   useEffect(() => {
     const getData = async () => {
       try {
-        const result = await fetchData();
-        console.log("Fetched data:", result);
-
-        const updatedData = result.data.map(user => ({
+        const result = await fetchAllUsers();
+        console.log("Fetched users:", result);
+        
+        // Handle different response structures
+        const userData = result?.data || result || [];
+        const userCount = result?.count || userData.length || 0;
+        
+        const updatedData = Array.isArray(userData) ? userData.map(user => ({
           ...user,
           active: true
-        }));
-        setCount(result.count)
-        console.log("this is updated data", updatedData)
+        })) : [];
+        
+        setCount(userCount);
         setTeam(updatedData);
       } catch (error) {
-        console.error('Fetching data error', error);
+        console.error('Fetching users error', error);
       }
     };
     getData();
   }, [refresh]);
+
+  // Fetch user analytics
+  useEffect(() => {
+    const getUserAnalytics = async () => {
+      try {
+        const analytics = await fetchUserAnalytics();
+        setDailyUserCount(analytics?.count?.daily || 0);
+        setWeeklyUserCount(analytics?.count?.weekly || 0);
+        setMonthlyUserCount(analytics?.count?.monthly || 0);
+      } catch (error) {
+        console.log('Error fetching user analytics:', error);
+      }
+    };
+    getUserAnalytics();
+  }, []);
 
   const DailyUserHandle = () => {
     navigate('/dailyuser');
@@ -85,46 +92,21 @@ const Team = ({ onBack, userId }) => {
 
 
 
+  // Toggle user block status
   const deActivateUser = async (id, currentStatus) => {
-    console.log(currentStatus, "currentStatus");
-    
     const isBlocked = currentStatus === "true";
     const updatedStatus = !isBlocked; 
     const data = { "isBlocked": updatedStatus.toString() }; 
   
-    console.log('Toggling block status for user ID:', id, 'New Status:', updatedStatus);
-  
     try {
-      const req = await fetch(`${process.env.REACT_APP_BACK_URL}/users/update/${id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-  
-      const response = await req.json();
-      console.log('Response:', response);
-      setRefresh(!refresh)
+      await updateUser(id, data);
+      setRefresh(!refresh);
   
     } catch (error) {
       console.error('Error updating user status:', error);
     }
   };
 
-  useEffect(() => {
-    const getUserCount = async () => {
-      try {
-        const users = await fetchAllUserCount();
-        setDailyUserCount(users.count.daily);
-        setWeeklyUserCount(users.count.weekly)
-        setMonthlyUserCount(users.count.monthly)
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getUserCount();
-  }, []);
 
   const columns = [
     {
@@ -215,13 +197,11 @@ const Team = ({ onBack, userId }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
-          );
-          const jobsData = response.data.data.jobs; 
-          const podcastData = response.data.data.podcast; 
-          const eventData = response.data.data.events; 
-          const videoData = response.data.data.videos; 
+          const response = await fetchUserById(selectedUser.Users_PK);
+          const jobsData = response.data.jobs; 
+          const podcastData = response.data.podcast; 
+          const eventData = response.data.events; 
+          const videoData = response.data.videos; 
           setUserDataJobsCount(jobsData); 
           setUserDataEventCount(eventData); 
           setUserDataPodcastCount(podcastData); 
@@ -230,7 +210,6 @@ const Team = ({ onBack, userId }) => {
           setUserDataEvent(eventData)
           setUserDataPodcast(podcastData)
           setUserDataVideo(videoData)
-          console.log(response.data, "Hello Selected user data count"); 
         } catch (error) {
           console.error("Error fetching user data count:", error);
         }

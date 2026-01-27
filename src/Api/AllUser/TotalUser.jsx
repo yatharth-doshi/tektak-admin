@@ -1,9 +1,10 @@
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_BACK_URL || 'http://3.231.197.106:5000';
 
 
 export const fetchTotalCOunt = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/allusers`);
+    const response = await axios.get(`${API_BASE_URL}/admin/allusers`);
     const result = response.data;
     return result;
   } catch (error) {
@@ -14,7 +15,7 @@ export const fetchTotalCOunt = async () => {
 
 export const fetchInvestorCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/investors`);
+    const response = await axios.get(`${API_BASE_URL}/admin/investors`);
     const result = response.data;
     return result;
   } catch (error) {
@@ -25,7 +26,7 @@ export const fetchInvestorCount = async () => {
 
 export const fetchEnterpreneurCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/entrepreneur`);
+    const response = await axios.get(`${API_BASE_URL}/admin/entrepreneur`);
     const result = response.data;
     return result;
   } catch (error) {
@@ -36,7 +37,7 @@ export const fetchEnterpreneurCount = async () => {
 
 export const fetchViewerCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/users`);
+    const response = await axios.get(`${API_BASE_URL}/admin/users`);
     const result = response.data;
     return result;
   } catch (error) {

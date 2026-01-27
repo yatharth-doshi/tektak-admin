@@ -3,6 +3,7 @@ import { Modal, Box, Typography, Button } from '@mui/material';
 import { useTheme } from '@emotion/react';
 import { tokens } from '../../theme';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 const ReportModal = ({ open, onClose, rowData, onDelete }) => {
   const theme = useTheme();
@@ -11,8 +12,8 @@ const ReportModal = ({ open, onClose, rowData, onDelete }) => {
   const handleDelete = async () => {
     try {
       const apiUrl = rowData?.reportType === 'Podcast' 
-      ? `${process.env.REACT_APP_BACK_URL}/podcasts`
-        : `${process.env.REACT_APP_BACK_URL}/upload/delete`;
+      ? `${API_BASE_URL}/podcasts`
+        : `${API_BASE_URL}/upload/delete`;
         
       await axios.post(`${apiUrl}/${rowData?.id}`);
       onDelete(); // Callback to refresh data after deletion

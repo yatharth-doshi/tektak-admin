@@ -7,6 +7,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { fetchAllJobsCount } from "../../Api/Jobs/AllJobsCount";
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const DailyJobs = () => {
     const [jobs, setJobs] = useState([]);
     const navigate = useNavigate();
@@ -17,7 +19,7 @@ const DailyJobs = () => {
     //     const getData = async () => {
     //         try {
     //             const response = await axios.get(
-    //                 `${process.env.REACT_APP_BACK_URL}/admin/info/jobs`
+    //                 `${API_BASE_URL}/admin/info/jobs`
     //             );
     //             const result = response.data;
 
@@ -50,7 +52,7 @@ const DailyJobs = () => {
         try {
             const updatedStatus = currentStatus === "true" ? "false" : "true";
             const response = await axios.put(
-                `${process.env.REACT_APP_BACK_URL}/jobs/${jobId}`,
+                `${API_BASE_URL}/jobs/${jobId}`,
                 {
                     isActivated: updatedStatus,
                 }

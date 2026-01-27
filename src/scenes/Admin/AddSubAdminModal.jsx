@@ -6,39 +6,36 @@ import {
   TextField,
   Button,
   useTheme,
+  CircularProgress,
 } from "@mui/material";
 import { tokens } from "../../theme";
-import axios from "axios";
+import { createSubAdmin } from "../../Api/adminApi";
 
 const AddSubAdminModal = ({ open, handleClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
 
-  const data = {
-    email,
-    password
-  }
   const handleSubAdmin = async () => {
     if (!email || !password) {
       alert("Please fill in all the fields before submitting");
-    } else {
-      try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_BACK_URL}/admin/subadmin`,
-          data
-        );
-        if (response.status === 200) {
-          alert("Sub-Admin added successfully");
-          setEmail("");
-          setPassword("");
-          handleClose(); 
-        }
-      } catch (err) {
-        console.error("Error adding Sub-Admin:", err);
-        alert("Failed to add Sub-Admin. Please try again.");
-      }
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await createSubAdmin({ email, password });
+      alert("Sub-Admin added successfully");
+      setEmail("");
+      setPassword("");
+      handleClose(); 
+    } catch (err) {
+      console.error("Error adding Sub-Admin:", err);
+      alert("Failed to add Sub-Admin. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -79,10 +76,11 @@ const AddSubAdminModal = ({ open, handleClose }) => {
         <Button
           fullWidth
           variant="contained"
+          disabled={loading}
           sx={{ mt: 2, backgroundColor:colors.greenAccent[600] }}
           onClick={handleSubAdmin}
         >
-          Submit
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Submit"}
         </Button>
       </Box>
     </Modal>

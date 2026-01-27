@@ -2,9 +2,9 @@ import { useTheme } from '@emotion/react';
 import { Box, Typography, Avatar } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { tokens } from '../../theme';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { fetchNotifications } from '../../Api/adminApi';
 
 
 function Notifications() {
@@ -13,17 +13,20 @@ function Notifications() {
   const navigate = useNavigate()
 
   const [notification, setNotification] = useState([])
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     const getNotification = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/notifications`);
-        const result = response.data;
-        const userId = result.data
-        console.log("Notification Response is ", userId);
-        setNotification(result.data);
+        setLoading(true);
+        const result = await fetchNotifications();
+        console.log("Notification Response is ", result);
+        setNotification(result.data || []);
       }
       catch (err) {
         console.log("Notification error is that", err);
+      } finally {
+        setLoading(false);
       }
     }
     getNotification();

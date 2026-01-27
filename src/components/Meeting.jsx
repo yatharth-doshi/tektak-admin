@@ -3,7 +3,7 @@ import { Box, Typography, Modal, CardMedia, IconButton, Grid } from '@mui/materi
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@emotion/react';
 import { tokens } from '../theme';
-import axios from 'axios';
+import { fetchAllMeetings, fetchMeetingById } from '../Api/adminApi';
 
 const Meeting = () => {
   const [count, setCount] = useState(0);
@@ -15,8 +15,7 @@ const Meeting = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/meetings`);
-        const result = await response.data;
+        const result = await fetchAllMeetings();
         const updatedData = result.data.map(user => ({
           ...user,
           active: true
@@ -34,9 +33,8 @@ const Meeting = () => {
     if (selectedMeetingId) {
       const getMeeting = async () => {
         try {
-          const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/meetings/${selectedMeetingId}`);
-          const result = await response.data.user;
-          setSingleMeeting(result); 
+          const result = await fetchMeetingById(selectedMeetingId);
+          setSingleMeeting(result.user); 
         } catch (error) {
           console.log("Error fetching single meeting", error);
         }

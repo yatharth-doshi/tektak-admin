@@ -1,64 +1,61 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { tokens } from "../../theme";
-import { useTheme, Box, Typography, Button, Card, CardContent, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material";
+import { useTheme, Box, Typography, Button, Card, CardMedia, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material";
 import StatBox from "../../components/StatBox";
 import PodcastsIcon from '@mui/icons-material/Podcasts';
-import img2 from './img2.jpeg';
+import DeleteIcon from '@mui/icons-material/Delete';
 import img3 from './img3.jpeg';
-import img4 from './img4.jpeg';
-import img5 from './img5.jpeg';
-import axios from "axios";
-import { fetchAllPodcastsCount } from "../../Api/Podcast/AllPodcastCount";
+import { fetchAllPodcasts, deletePodcast, fetchPodcastAnalytics } from "../../Api/adminApi";
 
 
 const Podcast = () => {
   const navigate = useNavigate()
   const [count, setCount] = useState(0);
   const [podcast, setPodcast] = useState([]);
-  const [dailyPodcastsCount, setDailyPodcastsCount] = useState(0)
-  const [monthlyPodcastsCount, setMonthlyPodcastsCount] = useState(0)
-  const [weeklyPodcastsCount, setWeeklyPodcastsCount] = useState(0)
+  const [refresh, setRefresh] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedPodcastId, setSelectedPodcastId] = useState(null);
+  const [dailyPodcastsCount, setDailyPodcastsCount] = useState(0);
+  const [monthlyPodcastsCount, setMonthlyPodcastsCount] = useState(0);
+  const [weeklyPodcastsCount, setWeeklyPodcastsCount] = useState(0);
 
-  // Fetch data from API
+  // Fetch all podcasts
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/podcasts`);
-        const result = await response.data;
-        const updatedData = result.data.map(user => ({
-          ...user,
+        const result = await fetchAllPodcasts();
+        const updatedData = result.data.map(item => ({
+          ...item,
           active: true,
         }));
         setCount(result.count);
         setPodcast(updatedData);
       } catch (error) {
-        console.error('Fetching data error', error);
+        console.error('Fetching podcasts error', error);
       }
     };
     getData();
-  }, [process.env.REACT_APP_BACK_URL]);
-console.log("Heyyyyyyyyyyyyyyyyyyyyyyyy",podcast)
-  // Get Count By Date 
-  useEffect(() => {
-    const getUserCount = async () => {
-      try {
-        const users = await fetchAllPodcastsCount();
-        setDailyPodcastsCount(users.count.daily);
-        setWeeklyPodcastsCount(users.count.weekly)
-        setMonthlyPodcastsCount(users.count.monthly)
+  }, [refresh]);
 
+  // Fetch podcast analytics
+  useEffect(() => {
+    const getPodcastAnalytics = async () => {
+      try {
+        const analytics = await fetchPodcastAnalytics();
+        setDailyPodcastsCount(analytics?.count?.daily || 0);
+        setWeeklyPodcastsCount(analytics?.count?.weekly || 0);
+        setMonthlyPodcastsCount(analytics?.count?.monthly || 0);
       } catch (error) {
-        console.log(error);
+        console.log('Error fetching podcast analytics:', error);
       }
     };
-    getUserCount();
+    getPodcastAnalytics();
   }, []);
 
   const { img } = useParams();
   const [selectedImage, setSelectedImage] = useState(null);
-  const [open, setOpen] = useState(false); // State to control the modal
-
+  const [open, setOpen] = useState(false);
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -67,22 +64,31 @@ console.log("Heyyyyyyyyyyyyyyyyyyyyyyyy",podcast)
     navigate('/userProfile', { state: { userPK: id } });
   };
 
-
   const handleDetailClick = (image) => {
     setSelectedImage(image);
-    setOpen(true); // Open the modal
+    setOpen(true);
   };
-  const handleDeletePodact = async (podid) => {
+
+  // Delete podcast handlers
+  const handleDeleteClick = (podcastId) => {
+    setSelectedPodcastId(podcastId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      // Make a DELETE request to the API to delete the video by ID
-      await axios.delete(`${process.env.REACT_APP_BACK_URL}/podcasts/${podid}`);
-
-      // Remove the deleted video from the state
-      setPodcast((prevpodcast) => prevpodcast.filter((podcast) => podcast._id !== podid));
-
+      await deletePodcast(selectedPodcastId);
+      setRefresh(!refresh);
+      setDeleteDialogOpen(false);
+      setSelectedPodcastId(null);
     } catch (error) {
-      console.error("Error deleting video:", error);
+      console.error("Error deleting podcast:", error);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setSelectedPodcastId(null);
   };
 
   const handleClose = () => {
@@ -197,24 +203,33 @@ console.log("Heyyyyyyyyyyyyyyyyyyyyyyyy",podcast)
                 <Typography variant="h4" style={{ color: "#4CCEAC" }}>{elm.episodeTitle}</Typography>
                 <Typography variant="h6">Type : {elm.podcastType}</Typography>
                 <Typography variant="h6">Poster Name: {elm?.user?.name || "Hello"}</Typography>
-                <Box display="flex" justifyContent="space-between">
-                  {/* <Typography variant="body2" display="flex" alignItems="center" gap={1}>
-                    {elm.user.name}
-                  </Typography> */}
+                <Box display="flex" justifyContent="space-between" gap={1}>
                   <Button variant="contained" color="secondary" onClick={() => handleDetailClick(elm)}>
                     Detail
                   </Button>
                   <Button variant="contained" color="secondary" onClick={() =>handleUser(elm.userID)}>
                     View Profile
                   </Button>
-                  <Button variant="contained" color="primary" sx={{ marginLeft: "20px" }} onClick={() => handleDeletePodact(elm._id)}>
-                    Delete
+                  <Button variant="contained" color="error" onClick={() => handleDeleteClick(elm._id)}>
+                    <DeleteIcon />
                   </Button>
                 </Box>
               </Box>
             </Card>
           ))}
         </Box>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            Are you sure you want to delete this podcast? This action cannot be undone.
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleDeleteCancel} color="primary">Cancel</Button>
+            <Button onClick={handleDeleteConfirm} color="error" variant="contained">Delete</Button>
+          </DialogActions>
+        </Dialog>
 
         {/* Modal for Podcast Details */}
         <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>

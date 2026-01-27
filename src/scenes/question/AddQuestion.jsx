@@ -10,6 +10,8 @@ import {
 import axios from "axios";
 import { tokens } from "../../theme";
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const AddQuestion = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -39,7 +41,7 @@ const AddQuestion = () => {
             return;
         } else {
             try {
-                const response = await axios.post(`${process.env.REACT_APP_BACK_URL}/qna/ques`, data, {
+                const response = await axios.post(`${API_BASE_URL}/qna/ques`, data, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -118,3 +120,4 @@ const AddQuestion = () => {
 };
 
 export default AddQuestion;
+

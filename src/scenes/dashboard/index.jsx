@@ -1,27 +1,30 @@
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import { tokens } from "../../theme";
-import { mockTransactions } from "../../data/mockData";
-import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import EmailIcon from "@mui/icons-material/Email";
-import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
 import Header from "../../components/Header";
-import LineChart from "../../components/LineChart";
 import GeographyChart from "../../components/GeographyChart";
-import BarChart from "../../components/BarChart";
+import AnalyticsBarChart from "../../components/AnalyticsBarChart";
+import AnalyticsPieChart from "../../components/AnalyticsPieChart";
 import TrafficIcon from "@mui/icons-material/Traffic";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import StatBox from "../../components/StatBox";
-import ProgressCircle from "../../components/ProgressCircle";
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import { useNavigate } from "react-router-dom";
 import PreviewIcon from '@mui/icons-material/Preview';
-import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import WorkIcon from '@mui/icons-material/Work';
+import EventIcon from '@mui/icons-material/Event';
+import PodcastsIcon from '@mui/icons-material/Podcasts';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { fetchEnterpreneurCount, fetchInvestorCount, fetchTotalCOunt, fetchViewerCount } from "../../Api/AllUser/TotalUser";
 import { fetchPaymentRequest } from "../../Api/Ticket/PaymentRequest";
-
+import {
+  fetchUserAnalytics,
+  fetchJobAnalytics,
+  fetchEventAnalytics,
+  fetchPodcastAnalytics,
+  fetchVideoAnalytics,
+  fetchTicketAnalytics,
+} from "../../Api/adminApi";
 
 const Dashboard = () => {
 
@@ -31,7 +34,14 @@ const Dashboard = () => {
   const [viewerCount, setViewerCount] = useState(0)
   const [payment, setPayment] = useState([])
   const [pendingPayment, setPendingPayment] = useState([])
-
+  
+  // Analytics states
+  const [userAnalytics, setUserAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 }, todayData: [], weekData: [], monthData: [] })
+  const [jobAnalytics, setJobAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 } })
+  const [eventAnalytics, setEventAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 } })
+  const [podcastAnalytics, setPodcastAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 } })
+  const [videoAnalytics, setVideoAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 } })
+  const [, setTicketAnalytics] = useState({ count: { daily: 0, weekly: 0, monthly: 0 } })
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -109,16 +119,46 @@ const Dashboard = () => {
     payment()
   }, [])
 
-  console.log("Pending Hellooooooo", pendingPayment)
+  // Fetch all analytics data
+  useEffect(() => {
+    const fetchAllAnalytics = async () => {
+      try {
+        const [users, jobs, events, podcasts, videos, tickets] = await Promise.all([
+          fetchUserAnalytics(),
+          fetchJobAnalytics(),
+          fetchEventAnalytics(),
+          fetchPodcastAnalytics(),
+          fetchVideoAnalytics(),
+          fetchTicketAnalytics(),
+        ]);
+        setUserAnalytics(users);
+        setJobAnalytics(jobs);
+        setEventAnalytics(events);
+        setPodcastAnalytics(podcasts);
+        setVideoAnalytics(videos);
+        setTicketAnalytics(tickets);
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+      }
+    };
+    fetchAllAnalytics();
+  }, []);
 
-  const data = [
-    { date: '2024-08-01', totalUsers: 100 },
-    { date: '2024-08-09', totalUsers: 120 },
-    { date: '2024-08-03', totalUsers: 150 },
-    { date: '2024-08-04', totalUsers: 170 },
-    { date: '2024-08-05', totalUsers: 200 },
+  // Prepare chart data for analytics
+  const analyticsBarData = [
+    { category: "Users", daily: userAnalytics?.count?.daily || 0, weekly: userAnalytics?.count?.weekly || 0, monthly: userAnalytics?.count?.monthly || 0 },
+    { category: "Jobs", daily: jobAnalytics?.count?.daily || 0, weekly: jobAnalytics?.count?.weekly || 0, monthly: jobAnalytics?.count?.monthly || 0 },
+    { category: "Events", daily: eventAnalytics?.count?.daily || 0, weekly: eventAnalytics?.count?.weekly || 0, monthly: eventAnalytics?.count?.monthly || 0 },
+    { category: "Podcasts", daily: podcastAnalytics?.count?.daily || 0, weekly: podcastAnalytics?.count?.weekly || 0, monthly: podcastAnalytics?.count?.monthly || 0 },
+    { category: "Videos", daily: videoAnalytics?.count?.daily || 0, weekly: videoAnalytics?.count?.weekly || 0, monthly: videoAnalytics?.count?.monthly || 0 },
   ];
-  // const chartData = userData || data;
+
+  const analyticsPieData = [
+    { id: "Investors", label: "Investors", value: investorCount, color: "hsl(104, 70%, 50%)" },
+    { id: "Entrepreneurs", label: "Entrepreneurs", value: enterpreneurCount, color: "hsl(162, 70%, 50%)" },
+    { id: "Viewers", label: "Viewers", value: viewerCount, color: "hsl(291, 70%, 50%)" },
+  ];
+
 
   return (
     <Box sx={{ height: "87vh", overflowY: "auto", padding: "20px" }}>
@@ -322,7 +362,69 @@ const Dashboard = () => {
           ))}
         </Box>
 
-        {/* ROW 3 */}
+        {/* ROW 3 - Analytics Stats */}
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          onClick={() => navigate("/jobs")}
+          sx={{ cursor: "pointer" }}
+        >
+          <StatBox
+            title={jobAnalytics?.count?.monthly || 0}
+            subtitle="Jobs (Monthly)"
+            icon={<WorkIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          onClick={() => navigate("/events")}
+          sx={{ cursor: "pointer" }}
+        >
+          <StatBox
+            title={eventAnalytics?.count?.monthly || 0}
+            subtitle="Events (Monthly)"
+            icon={<EventIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          onClick={() => navigate("/podcast")}
+          sx={{ cursor: "pointer" }}
+        >
+          <StatBox
+            title={podcastAnalytics?.count?.monthly || 0}
+            subtitle="Podcasts (Monthly)"
+            icon={<PodcastsIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
+          />
+        </Box>
+        <Box
+          gridColumn="span 3"
+          backgroundColor={colors.primary[400]}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          onClick={() => navigate("/videos")}
+          sx={{ cursor: "pointer" }}
+        >
+          <StatBox
+            title={videoAnalytics?.count?.monthly || 0}
+            subtitle="Videos (Monthly)"
+            icon={<VideoLibraryIcon sx={{ color: colors.greenAccent[600], fontSize: "26px" }} />}
+          />
+        </Box>
+
+        {/* ROW 4 - Charts */}
         <Box
           gridColumn="span 4"
           gridRow="span 2"
@@ -330,23 +432,10 @@ const Dashboard = () => {
           p="30px"
         >
           <Typography variant="h5" fontWeight="600">
-            Campaign
+            User Distribution
           </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            mt="25px"
-          >
-            <ProgressCircle size="125" />
-            <Typography
-              variant="h5"
-              color={colors.greenAccent[500]}
-              sx={{ mt: "15px" }}
-            >
-              $48,352 revenue generated
-            </Typography>
-            <Typography>Includes extra misc expenditures and costs</Typography>
+          <Box height="250px" mt="-20px">
+            <AnalyticsPieChart data={analyticsPieData} isDashboard={true} />
           </Box>
         </Box>
         <Box
@@ -359,10 +448,10 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ padding: "30px 30px 0 30px" }}
           >
-            Total Revnue
+            Analytics Overview
           </Typography>
           <Box height="250px" mt="-20px">
-            <BarChart isDashboard={true} />
+            <AnalyticsBarChart data={analyticsBarData} keys={["daily", "weekly", "monthly"]} isDashboard={true} />
           </Box>
         </Box>
         <Box

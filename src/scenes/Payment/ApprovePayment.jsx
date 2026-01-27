@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { fetchPaymentRequest } from "../../Api/Ticket/PaymentRequest";
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const ApprovePayment = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -33,7 +35,7 @@ const ApprovePayment = () => {
       const data = {
         requestStatus: "decline"
       };
-      const response = await axios.put(`${process.env.REACT_APP_BACK_URL}/payreq/${reqId}`, data)
+      const response = await axios.put(`${API_BASE_URL}/payreq/${reqId}`, data)
       console.log(response)
       setRefresh(!refresh)
 
@@ -47,7 +49,7 @@ const ApprovePayment = () => {
       const data = {
         requestStatus: "process"
       };
-      const response = await axios.put(`${process.env.REACT_APP_BACK_URL}/payreq/${reqId}`, data)
+      const response = await axios.put(`${API_BASE_URL}/payreq/${reqId}`, data)
       console.log(response)
       setRefresh(!refresh)
 
@@ -61,7 +63,7 @@ const ApprovePayment = () => {
       const data = {
         requestStatus: "approve"
       };
-      const response = await axios.put(`${process.env.REACT_APP_BACK_URL}/payreq/${reqId}`, data)
+      const response = await axios.put(`${API_BASE_URL}/payreq/${reqId}`, data)
       console.log(response)
       setRefresh(!refresh)
 
@@ -134,3 +136,4 @@ const ApprovePayment = () => {
 };
 
 export default ApprovePayment;
+

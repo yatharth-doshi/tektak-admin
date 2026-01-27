@@ -6,7 +6,9 @@ import { ArrowBack } from "@mui/icons-material";
 import img3 from './img3.jpeg';
 import axios from "axios";
 import Header from "../../components/Header";
-import { fetchAllPodcastsCount } from '../../Api/Podcast/AllPodcastCount'
+import { fetchAllPodcastsCount } from '../../Api/Podcast/AllPodcastCount';
+
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 
 const WeeklyPodcast = () => {
@@ -39,7 +41,7 @@ const WeeklyPodcast = () => {
   };
   const handleDeletePodact = async (podid) => {
     try {
-      await axios.delete(`${process.env.REACT_APP_BACK_URL}/podcasts/${podid}`);
+      await axios.delete(`${API_BASE_URL}/podcasts/${podid}`);
       setPodcast((prevpodcast) => prevpodcast.filter((podcast) => podcast._id !== podid));
 
     } catch (error) {
@@ -157,3 +159,4 @@ const WeeklyPodcast = () => {
 };
 
 export default WeeklyPodcast;
+

@@ -12,6 +12,8 @@ import UserEvents from './UserEvents';
 import UserPodcast from './UserPodcast';
 import UserJobs from './UserJobs';
 
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
+
 const UserProfile = () => {
     const theme = useTheme();
     const colors = tokens(theme.palette.mode);
@@ -44,7 +46,7 @@ const UserProfile = () => {
 
     useEffect(() => {
         const userData = async () => {
-            const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/users/${userPK}`)
+            const response = await axios.get(`${API_BASE_URL}/users/${userPK}`)
             console.log(response.data.user, "Response check")
             const userResult = Array.isArray(response.data.user)
                 ? response.data.user
