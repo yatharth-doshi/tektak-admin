@@ -66,7 +66,6 @@ const Dashboard = () => {
   useEffect(() => {
     const data = async () => {
       const response = await fetchTotalCOunt()
-      console.log('Dashoboard Response is ', response.count)
       setTotalCount(response.count)
     }
     data()
@@ -74,7 +73,6 @@ const Dashboard = () => {
   useEffect(() => {
     const data = async () => {
       const response = await fetchInvestorCount()
-      console.log('Dashoboard Response is ', response.data.count)
       setInvestorCount(response.data.count)
     }
     data()
@@ -82,7 +80,6 @@ const Dashboard = () => {
   useEffect(() => {
     const data = async () => {
       const response = await fetchEnterpreneurCount()
-      console.log('Dashoboard Response is ', response.data.count)
       setEnterpreneurCount(response.data.count)
     }
     data()
@@ -90,7 +87,6 @@ const Dashboard = () => {
   useEffect(() => {
     const data = async () => {
       const response = await fetchViewerCount()
-      console.log('Dashoboard Response is ', response.data.count)
       setViewerCount(response.data.count)
     }
     data()
@@ -102,7 +98,6 @@ const Dashboard = () => {
       const result = response.data;
       const pendingRequests = result.filter(item => item.requestStatus === "approve");
 
-      console.log(pendingRequests, "Filtered Pending Requests");
       setPayment(pendingRequests);
     }
     payment()
@@ -113,7 +108,6 @@ const Dashboard = () => {
       const result = response.data;
       const pendingRequests = result.filter(item => item.requestStatus === "pending");
 
-      console.log(pendingRequests, "Filtered Pending Requests");
       setPendingPayment(pendingRequests);
     }
     payment()

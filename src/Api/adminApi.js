@@ -1,11 +1,7 @@
 import axios from 'axios';
 
 // Fallback to live server if environment variable is not set
-const BASE_URL = process.env.REACT_APP_BACK_URL || 'http://3.231.197.106:5000';
-
-if (!process.env.REACT_APP_BACK_URL) {
-  console.warn('REACT_APP_BACK_URL is not set. Using default: http://3.231.197.106:5000');
-}
+const BASE_URL = process.env.REACT_APP_BACK_URL;
 
 // Helper function to get auth token from cookies
 const getAuthToken = () => {
@@ -35,10 +31,6 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-// ============================================
-// 1. USER MANAGEMENT ENDPOINTS
-// ============================================
 
 // Get all registered users
 export const fetchAllUsers = async () => {

@@ -2,18 +2,22 @@ import { useEffect, useState } from "react";
 import { Box, Typography, useTheme, Button, Avatar } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import StarIcon from '@mui/icons-material/Star';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
+import CRUDModal from "../../components/CRUDModal";
 import img from '../podcast/image1.jpeg'
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
-import { fetchAllUsers, updateUser, fetchUserAnalytics, fetchUserById } from "../../Api/adminApi";
+import { fetchAllUsers, updateUser, fetchUserAnalytics, fetchUserById, deleteUser } from "../../Api/adminApi";
 
 const Team = ({ onBack, userId }) => {
   const theme = useTheme();
@@ -27,6 +31,12 @@ const Team = ({ onBack, userId }) => {
   const [weeklyUserCount, setWeeklyUserCount] = useState(0)
   const [refresh, setRefresh] = useState(false)
   const navigate = useNavigate();
+
+  // CRUD Modal states
+  const [crudModalOpen, setCrudModalOpen] = useState(false);
+  const [crudMode, setCrudMode] = useState('create');
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+  const [crudLoading, setCrudLoading] = useState(false);
 
 
   // Fetch all users
@@ -107,6 +117,53 @@ const Team = ({ onBack, userId }) => {
     }
   };
 
+  // CRUD Handlers
+  const handleCreateUser = () => {
+    setCrudMode('create');
+    setSelectedUserForEdit({});
+    setCrudModalOpen(true);
+  };
+
+  const handleEditUser = (user) => {
+    setCrudMode('edit');
+    setSelectedUserForEdit(user);
+    setCrudModalOpen(true);
+  };
+
+  const handleDeleteUser = (user) => {
+    setCrudMode('delete');
+    setSelectedUserForEdit(user);
+    setCrudModalOpen(true);
+  };
+
+  const handleCRUDSubmit = async (data) => {
+    setCrudLoading(true);
+    try {
+      if (crudMode === 'create') {
+        // Note: You'll need to implement createUser API
+        alert('User creation feature needs backend implementation');
+      } else if (crudMode === 'edit') {
+        await updateUser(selectedUserForEdit.Users_PK, data);
+        alert('User updated successfully');
+      } else if (crudMode === 'delete') {
+        await deleteUser(selectedUserForEdit.Users_PK);
+        alert('User deleted successfully');
+      }
+      setRefresh(!refresh);
+      setCrudModalOpen(false);
+      setSelectedUserForEdit(null);
+    } catch (error) {
+      alert(`Failed to ${crudMode} user`);
+    } finally {
+      setCrudLoading(false);
+    }
+  };
+
+  const handleCrudModalClose = () => {
+    setCrudModalOpen(false);
+    setSelectedUserForEdit(null);
+  };
+
 
   const columns = [
     {
@@ -148,15 +205,34 @@ const Team = ({ onBack, userId }) => {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 200,
+      width: 300,
       renderCell: (params) => (
-        <Box display="flex" gap="10px">
-          <Button variant="contained" color="primary" onClick={() => handleViewProfileClick(params.row)}>
+        <Box display="flex" gap="8px">
+          <Button variant="contained" color="primary" size="small" onClick={() => handleViewProfileClick(params.row)}>
             Profile
+          </Button>
+          <Button 
+            variant="contained" 
+            color="info" 
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() => handleEditUser(params.row)}
+          >
+            Edit
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error" 
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={() => handleDeleteUser(params.row)}
+          >
+            Delete
           </Button>
           <Button
             variant="contained"
-            color={params.row.isBlocked === "true" ? "error" : "success"}
+            color={params.row.isBlocked === "true" ? "success" : "warning"}
+            size="small"
             onClick={() => {
               console.log("Helllo ",params.row.Users_PK, params.row.isBlocked);
               deActivateUser(params.row.Users_PK, params.row.isBlocked); 
@@ -346,7 +422,7 @@ const Team = ({ onBack, userId }) => {
     <Box sx={{ height: "87vh", overflowY: "auto", padding: "20px" }}>
       <Box>
         <Box display="grid" gridTemplateColumns="repeat(6, 3fr)" gridAutoRows="140px" gap="20px">
-          <Box display="flex" justifyContent="space-between" alignItems="center" gridColumn="span 6">
+          <Box display="flex" justifyContent="center" alignItems="center" gridColumn="span 6">
             <Header title="TOTAL USERS" subtitle="Managing the All Users" />
           </Box>
         </Box>
@@ -381,6 +457,24 @@ const Team = ({ onBack, userId }) => {
           </Box>
         </Box>
 
+        {/* Add User Button - positioned after stat boxes and before data table */}
+        <Box display="flex" justifyContent="flex-end" m="20px 0">
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateUser}
+            sx={{
+              backgroundColor: colors.greenAccent[600],
+              color: colors.grey[100],
+              '&:hover': {
+                backgroundColor: colors.greenAccent[500],
+              }
+            }}
+          >
+            Add User
+          </Button>
+        </Box>
+
         <Box m="40px 0 0 0" height="75vh" sx={{
           "& .MuiDataGrid-root": { border: "none" },
           "& .MuiDataGrid-cell": { borderBottom: "none" },
@@ -392,6 +486,29 @@ const Team = ({ onBack, userId }) => {
         }}>
           <DataGrid rows={team} columns={columns} getRowId={(row) => row.Users_PK} />
         </Box>
+
+        {/* CRUD Modal */}
+        <CRUDModal
+          open={crudModalOpen}
+          onClose={handleCrudModalClose}
+          onSubmit={handleCRUDSubmit}
+          mode={crudMode}
+          data={selectedUserForEdit}
+          loading={crudLoading}
+          fields={[
+            { name: 'name', label: 'Name', type: 'text', required: true },
+            { name: 'email', label: 'Email', type: 'email', required: true },
+            { name: 'role', label: 'Role', type: 'select', required: true, options: [
+              { value: 'entrepreneur', label: 'Entrepreneur' },
+              { value: 'investor', label: 'Investor' },
+              { value: 'viewer', label: 'Viewer' }
+            ]},
+            { name: 'isBlocked', label: 'Status', type: 'select', required: true, options: [
+              { value: 'false', label: 'Active' },
+              { value: 'true', label: 'Blocked' }
+            ]}
+          ]}
+        />
       </Box>
     </Box>
   );

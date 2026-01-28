@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Box, Button, TextField, Typography, useTheme, CircularProgress } from "@mui/material";
 import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
-import { adminLogin } from "../../Api/adminApi";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate()
+  const { login } = useAuth();
   const colors = tokens(theme.palette.mode);
 
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -36,12 +37,13 @@ const Login = () => {
     setError("");
 
     try {
-      const data = await adminLogin(formData);
-      if (data.message === 'success') {
-        document.cookie = `teqtak-admin-token=${data.authtoken}`;
+      const result = await login(formData);
+      console.log('Login result:', result);
+      
+      if (result.success) {
         navigate('/');
       } else {
-        setError(data.message || "Login failed. Please check your credentials.");
+        setError(result.error || "Login failed. Please check your credentials.");
       }
     } catch (err) {
       console.error("Login error:", err);

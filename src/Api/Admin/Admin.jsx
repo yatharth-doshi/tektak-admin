@@ -1,11 +1,12 @@
 import axios from 'axios';
-const API_BASE_URL = process.env.REACT_APP_BACK_URL || 'http://3.231.197.106:5000';
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 
 export const fetchAdminData = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/admin/profile`);
     const result = response.data;
+    console.log("admin profile", response.data);
     return result;
   } catch (error) {
     console.error('Error fetching admin profile:', error);

@@ -22,6 +22,8 @@ import InvestorTable from "./components/InvestorTable";
 import UserProfile from "./components/userProfile";
 import Notifications from "./scenes/notification/Notifications";
 import NotificationUser from "./components/NotificationUser";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Users
 import Team from "./scenes/team";
@@ -98,7 +100,7 @@ import WeeklyViewerPodcast from "./scenes/AllPodcast/ViewerPodcast/WeeklyViewerP
 // Viewer Video 
 import DailyInViewerVideo from "./scenes/AllVideos/ViewerVideo/DailyInViewerVideo";
 import MonthlyViewerVideo from "./scenes/AllVideos/ViewerVideo/MonthlyViewerVideo";
-import TotalViewerVideo from "./scenes/AllVideos/ViewerVideo/TotalViewerVideo";
+import TotalViewerVideo from './scenes/AllVideos/ViewerVideo/TotalViewerVideo'
 import WeeklyViewerVideo from "./scenes/AllVideos/ViewerVideo/WeeklyViewerVideo";
 // Viewer Jobs 
 import DailyViewerJobs from "./scenes/AllJobs/ViewerJobs/DailyViewerJobs";
@@ -139,156 +141,164 @@ function App() {
 
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <div className="app">
-          {location.pathname !== '/login' && <Sidebar isSidebar={isSidebar} />}
-          <main className="content">
-            {location.pathname !== '/login' && <Topbar isSidebar={isSidebar} />}
-            <Routes>
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <AuthProvider>
+            <CssBaseline />
+            <div className="app">
+              {location.pathname !== '/login' && <Sidebar isSidebar={isSidebar} />}
+              <main className="content">
+                {location.pathname !== '/login' && <Topbar isSidebar={isSidebar} />}
+                <Routes>
 
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/userProfile" element={<UserProfile />} />
+                  <Route path="/login" element={<Login />} />
 
-              {/* Other Routes */}
-              <Route path="/setting" element={<Setting />} />
-              <Route path="/line" element={<Line />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/blockaccounts" element={<BlockAccount />} />
-              <Route path="/meetings" element={<Meeting />} />
-              <Route path="/tickets" element={<Ticket />} />
-              <Route path="/traffic" element={<InvestorTable />} />
-              <Route path="/geography" element={<Geography />} />
-              <Route path="/user" element={<InvestorTable />} />
-              <Route path="/notification" element={<Notifications />} />
-              <Route path="/notification" element={<Notifications />} />
-              <Route path="/report" element={<Reports />} />
-              {/* Admin Route */}
-              <Route path="/admin-profile" element={<AdminProfile />} />
-              <Route path="/subadmin" element={<SubAdmin />} />
+                  <Route path="/*" element={
+                    <ProtectedRoute>
+                      <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/userProfile" element={<UserProfile />} />
 
-              {/* Podcats  */}
-              <Route path="/podcast" element={<Podcast />} />
-              <Route path="/dailyPodcast" element={<DailyPodcast />} />
-              <Route path="/weeklyPodcats" element={<WeeklyPodcast />} />
-              <Route path="/monthlyPodcast" element={<MonthlyPodcast />} />
-              {/* Videos  */}
-              <Route path="/videos" element={<Videos />} />
-              <Route path="/dailyVideos" element={<DailyVideos />} />
-              <Route path="/weeklyVideos" element={<WeeklyVideos />} />
-              <Route path="/monthlyVideos" element={<MonthlyVideos />} />
-              {/* Events  */}
-              <Route path="/events" element={<Events />} />
-              <Route path="/dailyEvents" element={<DailyEvents />} />
-              <Route path="/weeklyEvents" element={<WeeklyEvents />} />
-              <Route path="/monthlyEvents" element={<MonthlyEvents />} />
-              {/* Jobs  */}
-              <Route path="/jobs" element={<GetJobs />} />
-              <Route path="/dailyJobs" element={<DailyJobs />} />
-              <Route path="/weeklyJobs" element={<WeeklyJobs />} />
-              <Route path="/monthlyJobs" element={<MonthlyJobs />} />
+                        {/* Other Routes */}
+                        <Route path="/setting" element={<Setting />} />
+                        <Route path="/line" element={<Line />} />
+                        <Route path="/faq" element={<FAQ />} />
+                        <Route path="/blockaccounts" element={<BlockAccount />} />
+                        <Route path="/meetings" element={<Meeting />} />
+                        <Route path="/tickets" element={<Ticket />} />
+                        <Route path="/traffic" element={<InvestorTable />} />
+                        <Route path="/geography" element={<Geography />} />
+                        <Route path="/user" element={<InvestorTable />} />
+                        <Route path="/notification" element={<Notifications />} />
+                        <Route path="/report" element={<Reports />} />
+                        {/* Admin Route */}
+                        <Route path="/admin-profile" element={<AdminProfile />} />
+                        <Route path="/subadmin" element={<SubAdmin />} />
 
-              {/* User Routing */}
-              <Route path="/team" element={<Team />} />
-              <Route path="/dailyuser" element={<DailyUser />} />
-              <Route path="/weeklyuser" element={<WeeklyUser />} />
-              <Route path="/monthlyuser" element={<MonthlyUser />} />
+                        {/* Podcats  */}
+                        <Route path="/podcast" element={<Podcast />} />
+                        <Route path="/dailyPodcast" element={<DailyPodcast />} />
+                        <Route path="/weeklyPodcats" element={<WeeklyPodcast />} />
+                        <Route path="/monthlyPodcast" element={<MonthlyPodcast />} />
+                        {/* Videos  */}
+                        <Route path="/videos" element={<Videos />} />
+                        <Route path="/dailyVideos" element={<DailyVideos />} />
+                        <Route path="/weeklyVideos" element={<WeeklyVideos />} />
+                        <Route path="/monthlyVideos" element={<MonthlyVideos />} />
+                        {/* Events  */}
+                        <Route path="/events" element={<Events />} />
+                        <Route path="/dailyEvents" element={<DailyEvents />} />
+                        <Route path="/weeklyEvents" element={<WeeklyEvents />} />
+                        <Route path="/monthlyEvents" element={<MonthlyEvents />} />
+                        {/* Jobs  */}
+                        <Route path="/jobs" element={<GetJobs />} />
+                        <Route path="/dailyJobs" element={<DailyJobs />} />
+                        <Route path="/weeklyJobs" element={<WeeklyJobs />} />
+                        <Route path="/monthlyJobs" element={<MonthlyJobs />} />
 
-              {/* Investor Routing */}
-              <Route path="/investors" element={<Investor />} />
-              <Route path="/dailyinvestor" element={<DialyInvestor />} />
-              <Route path="/weeklyinvestor" element={<WeeklyInvestor />} />
-              <Route path="/monthlyinvestor" element={<MonthlyInvestor />} />
-              <Route path="/totalyinvestor" element={<TotalInvestor />} />
-              {/* Investor Podcast */}
-              <Route path="/dailyinvestorpodcast" element={<DailyInvestorPodcast />} />
-              <Route path="/monthlyinvestorpodcast" element={<MonthlyInvestorPodcast />} />
-              <Route path="/totalinvestorpodcast" element={<TotalInvestorPodcast />} />
-              <Route path="/weeklyinvestorpodcast" element={<WeeklyInvestorPodcast />} />
-              {/* Investor Video */}
-              <Route path="/dailyinvestorvideo" element={<DailyInvestorVideo />} />
-              <Route path="/monthlyinvestorvideo" element={<MonthlyInvestorVideo />} />
-              <Route path="/totalinvestorvideo" element={<TotalInvestorVideo />} />
-              <Route path="/weeklyinvestorvideo" element={<WeeklyInvestorVideo />} />
-              {/* Investor Jobs */}
-              <Route path="/dailyinvestorjobs" element={<DailyInvestorJobs />} />
-              <Route path="/monthlyinvestorjobs" element={<MonthlyInvestorJobs />} />
-              <Route path="/totalinvestorjobs" element={<TotalInvestorJobs />} />
-              <Route path="/weeklyinvestorjobs" element={<WeeklyInvestorJobs />} />
-              {/* Investor Events */}
-              <Route path="/dailyinvestorevents" element={<DailyInvestorEvents />} />
-              <Route path="/monthlyinvestorevents" element={<MonthlyInvestorEvents />} />
-              <Route path="/totalinvestorevents" element={<TotalInvestorEvents />} />
-              <Route path="/weeklyinvestorevents" element={<WeeklyInvestorEvents />} />
+                        {/* User Routing */}
+                        <Route path="/team" element={<Team />} />
+                        <Route path="/dailyuser" element={<DailyUser />} />
+                        <Route path="/weeklyuser" element={<WeeklyUser />} />
+                        <Route path="/monthlyuser" element={<MonthlyUser />} />
 
-              {/* Enterpreneur Routing */}
-              <Route path="/enterpreneur" element={<Enterpreneur />} />
-              <Route path="/dailyEnterpreneur" element={<DailyEnterpreneur />} />
-              <Route path="/weeklyEnterpreneur" element={<WeeklyEnterpreneur />} />
-              <Route path="/monthlyEnterpreneur" element={<MonthlyEnterpreneur />} />
-              <Route path="/totalyEnterpreneur" element={<TotalEnterpreneur />} />
-              {/* Enterpreneur Podcast */}
-              <Route path="/dailyenterpreneurpodcast" element={<DailyEnterpreneurPodcast />} />
-              <Route path="/monthlyenterpreneurpodcast" element={<MonthlyEnterpreneurPodcast />} />
-              <Route path="/totalenterpreneurpodcast" element={<TotalEnterpreneurPodcast />} />
-              <Route path="/weeklyenterpreneurpodcast" element={<WeeklyEnterpreneurPodcast />} />
-              {/* Enterpreneur Video */}
-              <Route path="/dailyenterpreneurvideo" element={<DailyEnterpreneurVideo />} />
-              <Route path="/monthlyenterpreneurvideo" element={<MonthlyEnterpreneurVideo />} />
-              <Route path="/totalenterpreneurvideo" element={<TotalEnterpreneurVideo />} />
-              <Route path="/weeklyenterpreneurvideo" element={<WeeklyEnterpreneurVideo />} />
-              {/* Enterpreneur Jobs */}
-              <Route path="/dailyenterpreneurjobs" element={<DailyEnterpreneurJobs />} />
-              <Route path="/monthlyenterpreneurjobs" element={<MonthlyEnterpreneurJobs />} />
-              <Route path="/totalenterpreneurjobs" element={<TotalEnterpreneurJobs />} />
-              <Route path="/weeklyenterpreneurjobs" element={<WeeklyEnterpreneurJobs />} />
-              {/* Enterpreneur Events */}
-              <Route path="/dailyenterpreneurevents" element={<DailyEnterpreneurEvents />} />
-              <Route path="/monthlyenterpreneurevents" element={<MonthlyEnterpreneurEvents />} />
-              <Route path="/totalenterpreneurevents" element={<TotalEnterpreneurEvents />} />
-              <Route path="/weeklyenterpreneurevents" element={<WeeklyEnterpreneurEvents />} />
+                        {/* Investor Routing */}
+                        <Route path="/investor" element={<Investor />} />
+                        <Route path="/dailyinvestor" element={<DialyInvestor />} />
+                        <Route path="/weeklyinvestor" element={<WeeklyInvestor />} />
+                        <Route path="/monthlyinvestor" element={<MonthlyInvestor />} />
+                        <Route path="/totalinvestor" element={<TotalInvestor />} />
+                        {/* Investor Podcast */}
+                        <Route path="/dailyinvestorpodcast" element={<DailyInvestorPodcast />} />
+                        <Route path="/weeklyinvestorpodcast" element={<WeeklyInvestorPodcast />} />
+                        <Route path="/monthlyinvestorpodcast" element={<MonthlyInvestorPodcast />} />
+                        <Route path="/totalinvestorpodcast" element={<TotalInvestorPodcast />} />
+                        {/* Investor Video */}
+                        <Route path="/dailyinvestorvideo" element={<DailyInvestorVideo />} />
+                        <Route path="/monthlyinvestorvideo" element={<MonthlyInvestorVideo />} />
+                        <Route path="/totalinvestorvideo" element={<TotalInvestorVideo />} />
+                        <Route path="/weeklyinvestorvideo" element={<WeeklyInvestorVideo />} />
+                        {/* Investor Jobs */}
+                        <Route path="/dailyinvestorjobs" element={<DailyInvestorJobs />} />
+                        <Route path="/monthlyinvestorjobs" element={<MonthlyInvestorJobs />} />
+                        <Route path="/totalinvestorjobs" element={<TotalInvestorJobs />} />
+                        <Route path="/weeklyinvestorjobs" element={<WeeklyInvestorJobs />} />
+                        {/* Investor Events */}
+                        <Route path="/dailyinvestorevents" element={<DailyInvestorEvents />} />
+                        <Route path="/monthlyinvestorevents" element={<MonthlyInvestorEvents />} />
+                        <Route path="/totalinvestorevents" element={<TotalInvestorEvents />} />
+                        <Route path="/weeklyinvestorevents" element={<WeeklyInvestorEvents />} />
 
-              {/* Viewer Routing */}
-              <Route path="/viewers" element={<Viewer />} />
-              <Route path="/dailyViewer" element={<DialyViewer />} />
-              <Route path="/weeklyViewer" element={<WeeklyViewer />} />
-              <Route path="/monthlyViewer" element={<MonthlyViewer />} />
-              <Route path="/totalyViewer" element={<TotalViewer />} />
-              {/* Viewer Podcast */}
-              <Route path="/dailyviewerpodcast" element={<DailyViewerPodcast />} />
-              <Route path="/monthlyviewerpodcast" element={<MonthlyViewerPodcast />} />
-              <Route path="/totalviewerpodcast" element={<TotalViewerPodcast />} />
-              <Route path="/weeklyviewerpodcast" element={<WeeklyViewerPodcast />} />
-              {/* Viewer Video */}
-              <Route path="/dailyviewervideo" element={<DailyInViewerVideo />} />
-              <Route path="/monthlyviewervideo" element={<MonthlyViewerVideo />} />
-              <Route path="/totalviewervideo" element={<TotalViewerVideo />} />
-              <Route path="/weeklyviewervideo" element={<WeeklyViewerVideo />} />
-              {/* Viewer Jobs */}
-              <Route path="/dailyviewerjobs" element={<DailyViewerJobs />} />
-              <Route path="/monthlyviewerjobs" element={<MonthlyViewerJobs />} />
-              <Route path="/totalviewerjobs" element={<TotalViewerJobs />} />
-              <Route path="/weeklyviewerjobs" element={<WeeklyViewerJobs />} />
-              {/* Viewer Events */}
-              <Route path="/dailyviewerevents" element={<DailyViewerEvents />} />
-              <Route path="/monthlyviewerevents" element={<MonthlyViewerEvents />} />
-              <Route path="/totalviewerevents" element={<TotalViewerEvents />} />
-              <Route path="/weeklyviewerevents" element={<WeeklyViewerEvents />} />
-              {/* Question */}
-              <Route path="/addQuestion" element={<AddQuestion />} />
-              <Route path="/get-task" element={<AllTask />} />
+                        {/* Enterpreneur Routing */}
+                        <Route path="/enterpreneur" element={<Enterpreneur />} />
+                        <Route path="/dailyEnterpreneur" element={<DailyEnterpreneur />} />
+                        <Route path="/weeklyEnterpreneur" element={<WeeklyEnterpreneur />} />
+                        <Route path="/monthlyEnterpreneur" element={<MonthlyEnterpreneur />} />
+                        <Route path="/totalyEnterpreneur" element={<TotalEnterpreneur />} />
+                        {/* Enterpreneur Podcast */}
+                        <Route path="/dailyenterpreneurpodcast" element={<DailyEnterpreneurPodcast />} />
+                        <Route path="/monthlyenterpreneurpodcast" element={<MonthlyEnterpreneurPodcast />} />
+                        <Route path="/totalenterpreneurpodcast" element={<TotalEnterpreneurPodcast />} />
+                        <Route path="/weeklyenterpreneurpodcast" element={<WeeklyEnterpreneurPodcast />} />
+                        {/* Enterpreneur Video */}
+                        <Route path="/dailyenterpreneurvideo" element={<DailyEnterpreneurVideo />} />
+                        <Route path="/monthlyenterpreneurvideo" element={<MonthlyEnterpreneurVideo />} />
+                        <Route path="/totalenterpreneurvideo" element={<TotalEnterpreneurVideo />} />
+                        <Route path="/weeklyenterpreneurvideo" element={<WeeklyEnterpreneurVideo />} />
+                        {/* Enterpreneur Jobs */}
+                        <Route path="/dailyenterpreneurjobs" element={<DailyEnterpreneurJobs />} />
+                        <Route path="/monthlyenterpreneurjobs" element={<MonthlyEnterpreneurJobs />} />
+                        <Route path="/totalenterpreneurjobs" element={<TotalEnterpreneurJobs />} />
+                        <Route path="/weeklyenterpreneurjobs" element={<WeeklyEnterpreneurJobs />} />
+                        {/* Enterpreneur Events */}
+                        <Route path="/dailyenterpreneurevents" element={<DailyEnterpreneurEvents />} />
+                        <Route path="/monthlyenterpreneurevents" element={<MonthlyEnterpreneurEvents />} />
+                        <Route path="/totalenterpreneurevents" element={<TotalEnterpreneurEvents />} />
+                        <Route path="/weeklyenterpreneurevents" element={<WeeklyEnterpreneurEvents />} />
 
-              {/* Payment  */}
-              <Route path="/buy-ticket" element={<UserPayment />} />
-              <Route path="/approve-payment" element={<ApprovePayment />} />
+                        {/* Viewer Routing */}
+                        <Route path="/viewer" element={<Viewer />} />
+                        <Route path="/dailyviewer" element={<DialyViewer />} />
+                        <Route path="/weeklyviewer" element={<WeeklyViewer />} />
+                        <Route path="/monthlyviewer" element={<MonthlyViewer />} />
+                        <Route path="/totalviewer" element={<TotalViewer />} />
+                        {/* Viewer Podcast */}
+                        <Route path="/dailyviewerpodcast" element={<DailyViewerPodcast />} />
+                        <Route path="/weeklyviewerpodcast" element={<WeeklyViewerPodcast />} />
+                        <Route path="/monthlyviewerpodcast" element={<MonthlyViewerPodcast />} />
+                        <Route path="/totalviewerpodcast" element={<TotalViewerPodcast />} />
+                        {/* Viewer Video */}
+                        <Route path="/dailyviewervideo" element={<DailyInViewerVideo />} />
+                        <Route path="/monthlyviewervideo" element={<MonthlyViewerVideo />} />
+                        <Route path="/totalviewervideo" element={<TotalViewerVideo />} />
+                        <Route path="/weeklyviewervideo" element={<WeeklyViewerVideo />} />
+                        {/* Viewer Jobs */}
+                        <Route path="/dailyviewerjobs" element={<DailyViewerJobs />} />
+                        <Route path="/monthlyviewerjobs" element={<MonthlyViewerJobs />} />
+                        <Route path="/totalviewerjobs" element={<TotalViewerJobs />} />
+                        <Route path="/weeklyviewerjobs" element={<WeeklyViewerJobs />} />
+                        {/* Viewer Events */}
+                        <Route path="/dailyviewerevents" element={<DailyViewerEvents />} />
+                        <Route path="/monthlyviewerevents" element={<MonthlyViewerEvents />} />
+                        <Route path="/totalviewerevents" element={<TotalViewerEvents />} />
+                        <Route path="/weeklyviewerevents" element={<WeeklyViewerEvents />} />
+                        {/* Question */}
+                        <Route path="/addQuestion" element={<AddQuestion />} />
+                        <Route path="/get-task" element={<AllTask />} />
 
-            </Routes>
-          </main>
-        </div>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+                        {/* Payment  */}
+                        <Route path="/buy-ticket" element={<UserPayment />} />
+                        <Route path="/approve-payment" element={<ApprovePayment />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  } />
+
+                </Routes>
+              </main>
+            </div>
+          </AuthProvider>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
   );
 }
 

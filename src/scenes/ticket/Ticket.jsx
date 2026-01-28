@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
-import { Box, useTheme } from "@mui/material";
+import { Box, useTheme, Button, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import { fetchAllTickets, fetchTicketAnalytics } from "../../Api/adminApi";
+import CRUDModal from "../../components/CRUDModal";
+import { fetchAllTickets, fetchTicketAnalytics, createTicket, updateTicket, deleteTicket } from "../../Api/adminApi";
 
 const Ticket = () => {
   const theme = useTheme();
@@ -17,7 +21,14 @@ const Ticket = () => {
   const [dailyCount, setDailyCount] = useState(0)
   const [weeklyCount, setWeeklyCount] = useState(0)
   const [monthlyCount, setMonthlyCount] = useState(0)
+  const [refresh, setRefresh] = useState(false)
   const navigate = useNavigate();
+
+  // CRUD Modal states
+  const [crudModalOpen, setCrudModalOpen] = useState(false);
+  const [crudMode, setCrudMode] = useState('create');
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [crudLoading, setCrudLoading] = useState(false);
 
 
   useEffect(() => {
@@ -35,7 +46,7 @@ const Ticket = () => {
       }
     }
     getData();
-  }, [])
+  }, [refresh])
 
   useEffect(() => {
     const getAnalytics = async () => {
@@ -108,14 +119,88 @@ const Ticket = () => {
       valueGetter: (params) => params.row.ticketEventId,
       cellClassName: (params) => (params.row.active ? "" : "inactive"),
     },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1,
+      renderCell: (params) => (
+        <Box display="flex" gap="8px">
+          <Button 
+            variant="contained" 
+            color="info" 
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() => handleEditTicket(params.row)}
+          >
+            Edit
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error" 
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={() => handleDeleteTicket(params.row)}
+          >
+            Delete
+          </Button>
+        </Box>
+      ),
+    },
   ];
+
+  // CRUD Handlers
+  const handleCreateTicket = () => {
+    setCrudMode('create');
+    setSelectedTicket({});
+    setCrudModalOpen(true);
+  };
+
+  const handleEditTicket = (ticket) => {
+    setCrudMode('edit');
+    setSelectedTicket(ticket);
+    setCrudModalOpen(true);
+  };
+
+  const handleDeleteTicket = (ticket) => {
+    setCrudMode('delete');
+    setSelectedTicket(ticket);
+    setCrudModalOpen(true);
+  };
+
+  const handleCRUDSubmit = async (data) => {
+    setCrudLoading(true);
+    try {
+      if (crudMode === 'create') {
+        await createTicket(data);
+        alert('Ticket created successfully');
+      } else if (crudMode === 'edit') {
+        await updateTicket(selectedTicket._id, data);
+        alert('Ticket updated successfully');
+      } else if (crudMode === 'delete') {
+        await deleteTicket(selectedTicket._id);
+        alert('Ticket deleted successfully');
+      }
+      setRefresh(!refresh);
+      setCrudModalOpen(false);
+      setSelectedTicket(null);
+    } catch (error) {
+      alert(`Failed to ${crudMode} ticket`);
+    } finally {
+      setCrudLoading(false);
+    }
+  };
+
+  const handleCrudModalClose = () => {
+    setCrudModalOpen(false);
+    setSelectedTicket(null);
+  };
 
 
   return (
     <Box sx={{height:"87vh",overflowY:"auto", padding:"20px"}}>
       <Box>
         <Box display="grid" gridTemplateColumns="repeat(6, 3fr)" gridAutoRows="140px" gap="20px">
-          <Box display="flex" justifyContent="space-between" alignItems="center" gridColumn="span 6">
+          <Box display="flex" justifyContent="center" alignItems="center" gridColumn="span 6">
             <Header title="TOTAL TICKETS" subtitle="Managing the All Tickets" />
           </Box>
         </Box>
@@ -150,6 +235,24 @@ const Ticket = () => {
           </Box>
         </Box>
 
+        {/* Add Ticket Button - positioned after stat boxes and before data table */}
+        <Box display="flex" justifyContent="flex-end" m="20px 0">
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateTicket}
+            sx={{
+              backgroundColor: colors.greenAccent[600],
+              color: colors.grey[100],
+              '&:hover': {
+                backgroundColor: colors.greenAccent[500],
+              }
+            }}
+          >
+            Add Ticket
+          </Button>
+        </Box>
+
         <Box m="40px 0 0 0" height="75vh" sx={{
           "& .MuiDataGrid-root": { border: "none" },
           "& .MuiDataGrid-cell": { borderBottom: "none" },
@@ -161,6 +264,29 @@ const Ticket = () => {
         }}>
           <DataGrid rows={tickets} columns={columns} getRowId={(row) => row._id} />
         </Box>
+
+        {/* CRUD Modal */}
+        <CRUDModal
+          open={crudModalOpen}
+          handleClose={handleCrudModalClose}
+          mode={crudMode}
+          title={`${crudMode === 'create' ? 'Add' : crudMode === 'edit' ? 'Edit' : 'Delete'} Ticket`}
+          initialData={selectedTicket}
+          fields={[
+            { name: 'ticketEventId', label: 'Ticket Event ID', required: true },
+            { name: 'eventId', label: 'Event ID', required: true },
+            { name: 'buyerId', label: 'Buyer ID', required: true },
+            { name: 'sellerId', label: 'Seller ID', required: true },
+            { name: 'price', label: 'Price', type: 'number', required: true },
+            { name: 'status', label: 'Status', type: 'select', required: true, options: [
+              { value: 'active', label: 'Active' },
+              { value: 'used', label: 'Used' },
+              { value: 'cancelled', label: 'Cancelled' }
+            ]},
+          ]}
+          onSubmit={handleCRUDSubmit}
+          loading={crudLoading}
+        />
       </Box>
     </Box>
   );

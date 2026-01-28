@@ -5,11 +5,16 @@ import { useTheme, Box, Typography, Button, Card, CardMedia, Dialog, DialogTitle
 import StatBox from "../../components/StatBox";
 import PodcastsIcon from '@mui/icons-material/Podcasts';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
 import img3 from './img3.jpeg';
-import { fetchAllPodcasts, deletePodcast, fetchPodcastAnalytics } from "../../Api/adminApi";
+import { fetchAllPodcasts, deletePodcast, fetchPodcastAnalytics, createPodcast, updatePodcast } from "../../Api/adminApi";
+import CRUDModal from "../../components/CRUDModal";
 
 
 const Podcast = () => {
+  const theme = useTheme();
+  const colors = tokens(theme.palette.mode);
   const navigate = useNavigate()
   const [count, setCount] = useState(0);
   const [podcast, setPodcast] = useState([]);
@@ -19,6 +24,12 @@ const Podcast = () => {
   const [dailyPodcastsCount, setDailyPodcastsCount] = useState(0);
   const [monthlyPodcastsCount, setMonthlyPodcastsCount] = useState(0);
   const [weeklyPodcastsCount, setWeeklyPodcastsCount] = useState(0);
+  
+  // CRUD Modal states
+  const [crudModalOpen, setCrudModalOpen] = useState(false);
+  const [crudMode, setCrudMode] = useState('create');
+  const [selectedPodcast, setSelectedPodcast] = useState(null);
+  const [crudLoading, setCrudLoading] = useState(false);
 
   // Fetch all podcasts
   useEffect(() => {
@@ -47,7 +58,7 @@ const Podcast = () => {
         setWeeklyPodcastsCount(analytics?.count?.weekly || 0);
         setMonthlyPodcastsCount(analytics?.count?.monthly || 0);
       } catch (error) {
-        console.log('Error fetching podcast analytics:', error);
+        console.error('Error fetching podcast analytics:', error);
       }
     };
     getPodcastAnalytics();
@@ -56,9 +67,6 @@ const Podcast = () => {
   const { img } = useParams();
   const [selectedImage, setSelectedImage] = useState(null);
   const [open, setOpen] = useState(false);
-
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
 
   const handleUser = (id) => {
     navigate('/userProfile', { state: { userPK: id } });
@@ -91,6 +99,51 @@ const Podcast = () => {
     setSelectedPodcastId(null);
   };
 
+  // CRUD Handlers
+  const handleCreatePodcast = () => {
+    setCrudMode('create');
+    setSelectedPodcast({});
+    setCrudModalOpen(true);
+  };
+
+  const handleEditPodcast = (podcast) => {
+    setCrudMode('edit');
+    setSelectedPodcast(podcast);
+    setCrudModalOpen(true);
+  };
+
+  const handleDeletePodcast = (podcast) => {
+    setCrudMode('delete');
+    setSelectedPodcast(podcast);
+    setCrudModalOpen(true);
+  };
+
+  const handleCRUDSubmit = async (data) => {
+    setCrudLoading(true);
+    try {
+      if (crudMode === 'create') {
+        await createPodcast(data);
+        alert('Podcast created successfully');
+      } else if (crudMode === 'edit') {
+        await updatePodcast(selectedPodcast._id, data);
+        alert('Podcast updated successfully');
+      } else if (crudMode === 'delete') {
+        await deletePodcast(selectedPodcast._id);
+        alert('Podcast deleted successfully');
+      }
+      setRefresh(!refresh);
+    } catch (error) {
+      alert(`Failed to ${crudMode} podcast`);
+    } finally {
+      setCrudLoading(false);
+    }
+  };
+
+  const handleCrudModalClose = () => {
+    setCrudModalOpen(false);
+    setSelectedPodcast(null);
+  };
+
   const handleClose = () => {
     setOpen(false); // Close the modal
   };
@@ -108,6 +161,25 @@ const Podcast = () => {
   return (
     <Fragment>
       <Box px={6} overflow="auto" position="relative" sx={{ height: "87vh", overflowY: "auto", padding: "20px" }}>
+        {/* Header */}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h3" color={colors.grey[100]}>Podcasts Management</Typography>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreatePodcast}
+            sx={{
+              backgroundColor: colors.greenAccent[600],
+              color: colors.grey[100],
+              '&:hover': {
+                backgroundColor: colors.greenAccent[500],
+              }
+            }}
+          >
+            Add Podcast
+          </Button>
+        </Box>
+        
         {/* Stats */}
         <Box
           display="grid"
@@ -210,7 +282,10 @@ const Podcast = () => {
                   <Button variant="contained" color="secondary" onClick={() =>handleUser(elm.userID)}>
                     View Profile
                   </Button>
-                  <Button variant="contained" color="error" onClick={() => handleDeleteClick(elm._id)}>
+                  <Button variant="contained" color="info" onClick={() => handleEditPodcast(elm)}>
+                    <EditIcon />
+                  </Button>
+                  <Button variant="contained" color="error" onClick={() => handleDeletePodcast(elm)}>
                     <DeleteIcon />
                   </Button>
                 </Box>
@@ -284,6 +359,26 @@ const Podcast = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* CRUD Modal */}
+        <CRUDModal
+          open={crudModalOpen}
+          handleClose={handleCrudModalClose}
+          mode={crudMode}
+          title={`${crudMode === 'create' ? 'Add' : crudMode === 'edit' ? 'Edit' : 'Delete'} Podcast`}
+          initialData={selectedPodcast}
+          fields={[
+            { name: 'episodeTitle', label: 'Episode Title', required: true },
+            { name: 'episodeNumber', label: 'Episode Number', required: true },
+            { name: 'episodeDescription', label: 'Episode Description', required: true },
+            { name: 'podcastType', label: 'Podcast Type', required: true },
+            { name: 'seasonNumber', label: 'Season Number' },
+            { name: 'podcastDuration', label: 'Duration' },
+            { name: 'picUrl', label: 'Cover Image URL' },
+          ]}
+          onSubmit={handleCRUDSubmit}
+          loading={crudLoading}
+        />
 
       </Box>
     </Fragment>

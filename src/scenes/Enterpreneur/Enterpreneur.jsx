@@ -5,6 +5,9 @@ import { tokens } from "../../theme";
 import InsertInvitationIcon from "@mui/icons-material/InsertInvitation";
 import TrafficIcon from "@mui/icons-material/Traffic";
 import StarIcon from '@mui/icons-material/Star';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
@@ -13,7 +16,8 @@ import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
 import UserJobs from "../../components/UserJobs";
 import { fetchAllEnterpreneurCount } from "../../Api/Enterpreneurs/AllEnterpreneurCount.api";
-import { fetchEntrepreneurs, updateUser, fetchUserById } from "../../Api/adminApi";
+import { fetchEntrepreneurs, updateUser, fetchUserById, deleteUser } from "../../Api/adminApi";
+import CRUDModal from "../../components/CRUDModal";
 
 const Enterpreneur = ({ onBack }) => {
   const theme = useTheme();
@@ -26,13 +30,18 @@ const Enterpreneur = ({ onBack }) => {
   const [refresh, setRefresh] = useState(false)
   const [count, setCount] = useState(0)
   const navigate = useNavigate();
+  
+  // CRUD Modal states
+  const [crudModalOpen, setCrudModalOpen] = useState(false);
+  const [crudMode, setCrudMode] = useState('create');
+  const [selectedEntrepreneur, setSelectedEntrepreneur] = useState(null);
+  const [crudLoading, setCrudLoading] = useState(false);
 
 
   useEffect(() => {
     const getData = async () => {
       try {
         const result = await fetchEntrepreneurs();
-        console.log("Fetched data:", result);
         
         // Handle different response structures
         const entrepreneurData = result?.data?.data || result?.data || result || [];
@@ -44,7 +53,6 @@ const Enterpreneur = ({ onBack }) => {
         })) : [];
         
         setCount(entrepreneurCount);
-        console.log(updatedData);
         setEntrepreneur(updatedData);
       } catch (error) {
         console.error('Fetching data error', error);
@@ -73,6 +81,50 @@ const Enterpreneur = ({ onBack }) => {
   const handleBackClick = () => {
     setSelectedUser(null)
   }
+
+  // CRUD Handlers
+  const handleCreateEntrepreneur = () => {
+    setCrudMode('create');
+    setSelectedEntrepreneur({});
+    setCrudModalOpen(true);
+  };
+
+  const handleEditEntrepreneur = (entrepreneur) => {
+    setCrudMode('edit');
+    setSelectedEntrepreneur(entrepreneur);
+    setCrudModalOpen(true);
+  };
+
+  const handleDeleteEntrepreneur = (entrepreneur) => {
+    setCrudMode('delete');
+    setSelectedEntrepreneur(entrepreneur);
+    setCrudModalOpen(true);
+  };
+
+  const handleCRUDSubmit = async (data) => {
+    setCrudLoading(true);
+    try {
+      if (crudMode === 'create') {
+        alert('Create functionality needs to be implemented in backend API');
+      } else if (crudMode === 'edit') {
+        await updateUser(selectedEntrepreneur.Users_PK, data);
+        alert('Entrepreneur updated successfully');
+      } else if (crudMode === 'delete') {
+        await deleteUser(selectedEntrepreneur.Users_PK);
+        alert('Entrepreneur deleted successfully');
+      }
+      setRefresh(!refresh);
+    } catch (error) {
+      alert(`Failed to ${crudMode} entrepreneur`);
+    } finally {
+      setCrudLoading(false);
+    }
+  };
+
+  const handleCrudModalClose = () => {
+    setCrudModalOpen(false);
+    setSelectedEntrepreneur(null);
+  };
 
 
   const deActivateUser = async (id, currentStatus) => {
@@ -152,34 +204,43 @@ const Enterpreneur = ({ onBack }) => {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 200,
       renderCell: (params) => (
-        <Box display="flex" gap="10px">
-          <Button variant="contained" color="primary"
+        <Box display="flex" gap="8px" flexWrap="wrap">
+          <Button variant="contained" color="primary" size="small"
             onClick={() => handleViewProfileClick(params.row)}>
             Profile
           </Button>
-          {/* <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => onSubAdminClick(params.row.Users_PK)}
-            >
-            Sub-Admin
-          </Button> */}
           <Button
             variant="contained"
-            color={params.row.isBlocked === "true" ? "error" : "success"}
+            color="info"
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={() => handleEditEntrepreneur(params.row)}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            startIcon={<DeleteIcon />}
+            onClick={() => handleDeleteEntrepreneur(params.row)}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="contained"
+            color={params.row.isBlocked === "true" ? "success" : "warning"}
+            size="small"
             onClick={() => {
-              // handleActiveToggle(params.row.Users_PK);
-              console.log("Helllo ", params.row.Users_PK, params.row.isBlocked);
               deActivateUser(params.row.Users_PK, params.row.isBlocked);
             }}
           >
-            {params.row.active ? "Deactivate" : "Activate"}
+            {params.row.isBlocked === "true" ? "Activate" : "Deactivate"}
           </Button>
         </Box>
       ),
-      minWidth: 300, // Ensure enough space for all buttons
+      minWidth: 400,
       align: "center",
     },
   ];
@@ -389,6 +450,20 @@ const Enterpreneur = ({ onBack }) => {
         <Box display="grid" gridTemplateColumns="repeat(6, 3fr)" gridAutoRows="140px" gap="20px">
           <Box display="flex" justifyContent="space-between" alignItems="center" gridColumn="span 6">
             <Header title="TOTAL ENTERPRENEUR" subtitle="Managing the All Enterpreneur" />
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateEntrepreneur}
+              sx={{
+                backgroundColor: colors.greenAccent[600],
+                color: colors.grey[100],
+                '&:hover': {
+                  backgroundColor: colors.greenAccent[500],
+                }
+              }}
+            >
+              Add Entrepreneur
+            </Button>
           </Box>
         </Box>
         <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gridAutoRows="140px" gap="20px">
@@ -467,6 +542,26 @@ const Enterpreneur = ({ onBack }) => {
             getRowId={(row) => row.Users_PK}
           />
         </Box>
+
+        {/* CRUD Modal */}
+        <CRUDModal
+          open={crudModalOpen}
+          handleClose={handleCrudModalClose}
+          mode={crudMode}
+          title={`${crudMode === 'create' ? 'Add' : crudMode === 'edit' ? 'Edit' : 'Delete'} Entrepreneur`}
+          initialData={selectedEntrepreneur}
+          fields={[
+            { name: 'name', label: 'Name', required: true },
+            { name: 'email', label: 'Email', required: true, type: 'email' },
+            { name: 'role', label: 'Role', required: true },
+            { name: 'phone', label: 'Phone', type: 'tel' },
+            { name: 'address', label: 'Address' },
+            { name: 'city', label: 'City' },
+            { name: 'country', label: 'Country' },
+          ]}
+          onSubmit={handleCRUDSubmit}
+          loading={crudLoading}
+        />
 
       </Box>
     </Box>

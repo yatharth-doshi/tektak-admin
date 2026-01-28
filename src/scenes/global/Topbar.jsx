@@ -13,7 +13,7 @@ import axios from 'axios';
 import profile from '../../assets/user.jpg';
 import { formatDistanceToNow } from 'date-fns';
 
-const API_BASE_URL = process.env.REACT_APP_BACK_URL || 'http://3.231.197.106:5000';
+const API_BASE_URL = process.env.REACT_APP_BACK_URL;
 
 
 const Topbar = () => {
