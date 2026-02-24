@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from '../auth';
 
 export const handleSubAdmin = async (userId) => {
     try {
-        const response = await axios.post(
-            `${process.env.REACT_APP_BACK_URL}/admin/subadmin`,
+        const response = await api.post(
+            '/admin/subadmin',
             { userId }
         );
         console.log("Sub-admin created successfully:", response.data);
@@ -16,7 +16,7 @@ export const handleSubAdmin = async (userId) => {
 
 export const handleGetSubAdmin = async () => {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/subadmin`);
+        const response = await api.get('/admin/subadmin');
         console.log("Sub-admin created successfully:", response.data);
         return response.data;
     } catch (error) {

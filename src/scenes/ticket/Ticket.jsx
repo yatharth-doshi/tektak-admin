@@ -8,7 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
+import api from "../../Api/auth";
 import img from '../podcast/image1.jpeg'
 import { fetchTickets } from "../../Api/Ticket/Ticket.Api";
 

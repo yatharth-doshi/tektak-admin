@@ -26,6 +26,10 @@ import QuizOutlinedIcon from '@mui/icons-material/QuizOutlined';
 import ReportGmailerrorredOutlinedIcon from '@mui/icons-material/ReportGmailerrorredOutlined'
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import VideoCallIcon from '@mui/icons-material/VideoCall';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 
 const Sidebar = () => {
@@ -204,6 +208,26 @@ const Sidebar = () => {
             </MenuItem>
 
             <MenuItem
+              active={selected === "Ticket Management"}
+              style={{ color: colors.grey[100] }}
+              onClick={() => setSelected("Ticket Management")}
+              icon={<LocalActivityOutlinedIcon />}
+            >
+              <Typography>Ticket Management</Typography>
+              <Link to="/tickets-management" />
+            </MenuItem>
+
+            <MenuItem
+              active={selected === "Meeting Management"}
+              style={{ color: colors.grey[100] }}
+              onClick={() => setSelected("Meeting Management")}
+              icon={<VideoCallIcon />}
+            >
+              <Typography>Meeting Management</Typography>
+              <Link to="/meetings-management" />
+            </MenuItem>
+
+            <MenuItem
               active={selected === "Diactivate Account"}
               style={{ color: colors.grey[100] }}
               onClick={() => setSelected("Diactivate Account")}
@@ -250,6 +274,26 @@ const Sidebar = () => {
             >
               <Typography>Add Question</Typography>
               <Link to="/addQuestion" />
+            </MenuItem>
+
+            <MenuItem
+              active={selected === "Q&A Management"}
+              style={{ color: colors.grey[100] }}
+              onClick={() => setSelected("Q&A Management")}
+              icon={<QuestionAnswerIcon />}
+            >
+              <Typography>Q&A Management</Typography>
+              <Link to="/qa-management" />
+            </MenuItem>
+
+            <MenuItem
+              active={selected === "Content Management"}
+              style={{ color: colors.grey[100] }}
+              onClick={() => setSelected("Content Management")}
+              icon={<VideoLibraryIcon />}
+            >
+              <Typography>Content Management</Typography>
+              <Link to="/content-management" />
             </MenuItem>
 
             <MenuItem

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme, Button, Card, CardContent, CardHeader, Container, Grid, Typography, TextField } from '@mui/material';
+import { useTheme, Button, Card, CardContent, CardHeader, Container, Grid, Typography, TextField, Alert, CircularProgress } from '@mui/material';
 import { tokens } from "../../theme";
 import { styled } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
-import { fetchAdminData } from '../../Api/Admin/Admin';
-import axios from 'axios';
+import { authAPI } from '../../Api';
 
 
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -15,13 +14,35 @@ const StyledCard = styled(Card)(({ theme }) => ({
 const AdminProfile = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const [admin, setAdmin] = useState([])
+  const [admin, setAdmin] = useState({})
   const [refresh, setRefresh] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
   useEffect(() => {
     const getResponse = async () => {
-      const response = await fetchAdminData()
-      setAdmin(response)
+      try {
+        setLoading(true)
+        const response = await authAPI.getProfile()
+        setAdmin(response)
+        // Pre-fill form with existing data
+        setFormData({
+          username: response.userName || "",
+          email: response.email || "",
+          firstName: response.firstName || "",
+          lastName: response.lastName || "",
+          address: response.address || "",
+          city: response.city || "",
+          country: response.country || "",
+          postalCode: response.postalCode || "",
+          aboutMe: response.aboutMe || "",
+        })
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch profile data")
+      } finally {
+        setLoading(false)
+      }
     }
     getResponse()
   }, [refresh])
@@ -48,21 +69,22 @@ const AdminProfile = () => {
     const isFormValid = Object.values(formData).every((value) => value.trim() !== "");
 
     if (!isFormValid) {
-      alert("Please fill in all the fields.");
+      setError("Please fill in all the fields.");
       return;
     }
+    
+    setLoading(true)
+    setError("")
+    setSuccess("")
+    
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACK_URL}/admin/profile/update`,
-        formData
-      );
-      if (response.status === 200) {
-        alert("Profile updated successfully");
-        setRefresh(!refresh)
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      const response = await authAPI.updateProfile(formData);
+      setSuccess("Profile updated successfully");
+      setRefresh(!refresh)
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update profile");
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -70,6 +92,17 @@ const AdminProfile = () => {
     <>
       {/* Page content */}
       <Container sx={{ padding: 7, height: "87vh", overflowY: "auto" }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {success}
+          </Alert>
+        )}
+        
         <Grid container spacing={3}>
           {/* Profile Image */}
           <Grid item xs={12} md={4} >
@@ -85,7 +118,7 @@ const AdminProfile = () => {
                   </Grid>
                 </Grid>
                 <CardHeader style={{ color: "#4CCEAC" }}
-                  title={`${admin.firstName} ${admin.lastName}`}
+                  title={`${admin.firstName || ''} ${admin.lastName || ''}`}
                   sx={{ textAlign: 'center', mt: 3 }}
                 />
                 <Typography variant="body2" color="text.secondary" align="center" mt={2}>
@@ -228,6 +261,7 @@ const AdminProfile = () => {
                 />
                 <Button
                   variant="contained"
+                  disabled={loading}
                   style={{
                     backgroundColor: "rgb(41,182,246)",
                     color: "#fff",
@@ -238,7 +272,7 @@ const AdminProfile = () => {
                   }}
                   onClick={handleSubmit}
                 >
-                  Update
+                  {loading ? <CircularProgress size={20} color="inherit" /> : 'Update'}
                 </Button>
               </CardContent>
             </div>

@@ -9,7 +9,7 @@ import StarIcon from '@mui/icons-material/Star';
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
+import api from "../../Api/auth";
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
@@ -32,7 +32,7 @@ const Enterpreneur = ({ onBack }) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/entrepreneur`);
+      const response = await api.get('/admin/entrepreneur');
       return response.data;
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -227,8 +227,8 @@ const Enterpreneur = ({ onBack }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
+          const response = await api.get(
+            `/admin/users/${selectedUser.Users_PK}`
           );
           const jobsData = response.data.data.jobs; 
           const podcastData = response.data.data.podcast; 

@@ -5,7 +5,9 @@ import Sidebar from "./scenes/global/Sidebar";
 import Dashboard from "./scenes/dashboard";
 import BlockAccount from "./components/BlockAccount";
 import Ticket from '../src/scenes/ticket/Ticket'
+import TicketManagement from '../src/scenes/ticket/TicketManagement'
 import Meeting from './components/Meeting'
+import MeetingManagement from './scenes/meetings/MeetingManagement'
 import Podcast from "./scenes/podcast";
 import Videos from './scenes/Videos/index'
 // import Bar from "./scenes/AdminProfile";
@@ -22,6 +24,9 @@ import InvestorTable from "./components/InvestorTable";
 import UserProfile from "./components/userProfile";
 import Notifications from "./scenes/notification/Notifications";
 import NotificationUser from "./components/NotificationUser";
+
+// Import auth test utility
+import './utils/authTest';
 
 // Users
 import Team from "./scenes/team";
@@ -111,6 +116,8 @@ import MonthlyViewerEvents from "./scenes/AllEvents/ViewerEvents/MonthlyViewerEv
 import TotalViewerEvents from "./scenes/AllEvents/ViewerEvents/TotalViewerEvents";
 import WeeklyViewerEvents from "./scenes/AllEvents/ViewerEvents/WeeklyViewerEvents";
 import AddQuestion from "./scenes/question/AddQuestion";
+import QAManagement from "./scenes/qna/QAManagement";
+import UserContentManagement from "./scenes/content/UserContentManagement";
 import DailyJobs from "./scenes/GetJobs/DailyJobs";
 import WeeklyJobs from "./scenes/GetJobs/WeeklyJobs";
 import MonthlyJobs from "./scenes/GetJobs/MonthlyJobs";
@@ -158,7 +165,9 @@ function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/blockaccounts" element={<BlockAccount />} />
               <Route path="/meetings" element={<Meeting />} />
+              <Route path="/meetings-management" element={<MeetingManagement />} />
               <Route path="/tickets" element={<Ticket />} />
+              <Route path="/tickets-management" element={<TicketManagement />} />
               <Route path="/traffic" element={<InvestorTable />} />
               <Route path="/geography" element={<Geography />} />
               <Route path="/user" element={<InvestorTable />} />
@@ -279,6 +288,8 @@ function App() {
               {/* Question */}
               <Route path="/addQuestion" element={<AddQuestion />} />
               <Route path="/get-task" element={<AllTask />} />
+              <Route path="/qa-management" element={<QAManagement />} />
+              <Route path="/content-management" element={<UserContentManagement />} />
 
               {/* Payment  */}
               <Route path="/buy-ticket" element={<UserPayment />} />

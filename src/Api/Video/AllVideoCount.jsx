@@ -1,9 +1,9 @@
-import axios from 'axios';
+import api from '../auth';
 
 
 export const fetchAllVideoCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/videos`);
+    const response = await api.get('/admin/info/videos');
     const result = response.data;
     return result;
   } catch (error) {

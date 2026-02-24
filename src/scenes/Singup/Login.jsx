@@ -1,50 +1,57 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, useTheme } from "@mui/material";
-import { tokens } from "../../theme"; // Same color tokens as used in Event component
+import { Box, Button, TextField, Typography, useTheme, Alert, CircularProgress } from "@mui/material";
+import { tokens } from "../../theme";
 import { useNavigate } from "react-router-dom";
+import { authAPI, setAuthToken } from "../../Api";
+import { debugLoginResponse } from "../../utils/authTest";
 
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate()
-  const colors = tokens(theme.palette.mode);  // Get the colors from the theme
+  const colors = tokens(theme.palette.mode);
 
   const [formData, setFormData] = useState({});
-  const [selectedRole, setSelectedRole] = useState("Admin");  // Default role is 'viewer'
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError(""); // Clear error on input change
   };
 
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const requestBody = formData
-    console.log(requestBody);
-  };
+    setLoading(true);
+    setError("");
 
-  const __login__=async()=>{
-    console.log("logining in");
-    console.log({formData});
-    
-    const req = await fetch(`${process.env.REACT_APP_BACK_URL}/admin/login`,{
-      method:"POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body:JSON.stringify(formData)
-    })
-    const data = await req.json()
-    if(data.message=='success'){
-      document.cookie=`teqtak-admin-token=${data.authtoken}`
-      navigate('/')
+    try {
+      const response = await authAPI.login(formData);
+      
+      // Debug the actual response structure
+      debugLoginResponse(response);
+      
+      // Store JWT token - handle different response structures
+      const token = response.token || response.authtoken || response.data?.token || response.data?.authtoken;
+      
+      if (token) {
+        setAuthToken(token);
+        console.log("Login successful, token stored");
+        navigate('/');
+      } else {
+        console.error("No token found in response:", response);
+        setError("Login successful but no token received. Check console for response structure.");
+      }
+      
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
-    else{
-      navigate('/login')
-    }
-  }
+  };
 
   return (
     <Box
@@ -113,20 +120,25 @@ const Login = () => {
 
 
           <Button
-          onClick={__login__}
-            // type="submit"
+            type="submit"
             variant="contained"
             fullWidth
+            disabled={loading}
             sx={{
-              backgroundColor: colors.greenAccent[600], 
+              backgroundColor: colors.greenAccent[600],
               "&:hover": {
-                backgroundColor: colors.greenAccent[500], 
+                backgroundColor: colors.greenAccent[500],
               },
               color: colors.grey[100],
             }}
           >
-            Sign Up
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
           </Button>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
         </form>
       </Box>
     </Box>

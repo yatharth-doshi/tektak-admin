@@ -1,9 +1,9 @@
-import axios from 'axios';
+import api from '../auth';
 
 
 export const fetchAllEnterpreneurCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/entrepreneur`);
+    const response = await api.get('/admin/info/entrepreneur');
     const result = response.data;
     return result;
   } catch (error) {

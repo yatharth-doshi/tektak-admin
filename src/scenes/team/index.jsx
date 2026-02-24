@@ -9,7 +9,7 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import { useNavigate } from "react-router-dom";
 import StatBox from "../../components/StatBox";
 import Header from "../../components/Header";
-import axios from "axios";
+import api from "../../Api/auth";
 import img from '../podcast/image1.jpeg'
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
@@ -33,8 +33,7 @@ const Team = ({ onBack, userId }) => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/allusers
-`);
+      const response = await api.get('/admin/allusers');
       return response.data;
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -215,8 +214,8 @@ const Team = ({ onBack, userId }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
+          const response = await api.get(
+            `/admin/users/${selectedUser.Users_PK}`
           );
           const jobsData = response.data.data.jobs; 
           const podcastData = response.data.data.podcast; 

@@ -9,7 +9,7 @@ import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import SearchIcon from "@mui/icons-material/Search";
-import axios from "axios";
+import api from "../../Api/auth";
 import profile from '../../assets/user.jpg'
 import { formatDistanceToNow } from 'date-fns';
 
@@ -37,7 +37,7 @@ const Topbar = () => {
   useEffect(() => {
     const getnotification = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/notifications`)
+        const response = await api.get('/admin/notifications')
         const result = response.data
         setCount(result.count)
         setNotification(result.data)

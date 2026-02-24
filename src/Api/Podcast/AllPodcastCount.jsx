@@ -1,9 +1,9 @@
-import axios from 'axios';
+import api from '../auth';
 
 
 export const fetchAllPodcastsCount = async () => {
   try {
-    const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/info/podcasts`);
+    const response = await api.get('/admin/info/podcasts');
     const result = response.data;
     return result;
   } catch (error) {

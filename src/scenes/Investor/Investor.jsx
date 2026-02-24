@@ -15,7 +15,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PreviewIcon from '@mui/icons-material/Preview';
 import InsertInvitationIcon from '@mui/icons-material/InsertInvitation';
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../Api/auth";
 import UserVideo from "../../components/UserVideo";
 import UserPodcast from "../../components/UserPodcast";
 import UserEvents from "../../components/UserEvents";
@@ -70,7 +70,7 @@ const Investor = ({ onBack }) => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/admin/investors`)
+        const response = await api.get('/admin/investors')
         const result = await response.data;
         const updatedData = result.data.data.map(user => ({
           ...user,
@@ -215,8 +215,8 @@ const Investor = ({ onBack }) => {
     if (selectedUser) {
       const fetchUserDataCount = async () => {
         try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACK_URL}/users/${selectedUser.Users_PK}`
+          const response = await api.get(
+            `/admin/users/${selectedUser.Users_PK}`
           );
           const jobsData = response.data.data.jobs; 
           const podcastData = response.data.data.podcast; 

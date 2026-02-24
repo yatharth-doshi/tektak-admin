@@ -3,7 +3,7 @@ import { Box, Typography, Modal, CardMedia, IconButton, Grid } from '@mui/materi
 import CloseIcon from '@mui/icons-material/Close';
 import { useTheme } from '@emotion/react';
 import { tokens } from '../theme';
-import axios from 'axios';
+import api from '../Api/auth';
 
 const Meeting = () => {
   const [count, setCount] = useState(0);
@@ -15,7 +15,7 @@ const Meeting = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/meetings`);
+        const response = await api.get('/admin/meetings');
         const result = await response.data;
         const updatedData = result.data.map(user => ({
           ...user,
@@ -34,7 +34,7 @@ const Meeting = () => {
     if (selectedMeetingId) {
       const getMeeting = async () => {
         try {
-          const response = await axios.get(`${process.env.REACT_APP_BACK_URL}/meetings/${selectedMeetingId}`);
+          const response = await api.get(`/admin/meetings/${selectedMeetingId}`);
           const result = await response.data.user;
           setSingleMeeting(result); 
         } catch (error) {
